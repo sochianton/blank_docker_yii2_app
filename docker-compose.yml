@@ -1,0 +1,48 @@
+version: '3'
+services:
+  nginx:
+    restart: always
+    stop_grace_period: 30s
+    logging: &logging
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+    volumes:
+      - nginx-data:/letsencrypt
+    links:
+      - web
+  web:
+    image: ${IMAGE_PHP}
+    restart: always
+    stop_grace_period: 30s
+    entrypoint: '/app/docker/run/entrypoint.sh'
+    command: 'php-fpm'
+    logging: *logging
+    links: &web_links
+      - postgres
+      - rabbit
+  postgres:
+    image: ${IMAGE_POSTGRES}
+    stop_grace_period: 30s
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+    restart: always
+    logging: *logging
+  queue:
+    image: ${IMAGE_PHP}
+    restart: always
+    entrypoint: '/app/docker/run/entrypoint-queue.sh'
+    command: ''
+    logging: *logging
+    links: *web_links
+    depends_on:
+      - rabbit
+  rabbit:
+    restart: always
+    image: ${IMAGE_RABBITMQ}
+volumes:
+  postgresql-data:
+    driver: local
+  nginx-data:
+    driver: local

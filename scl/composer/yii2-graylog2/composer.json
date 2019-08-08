@@ -1,0 +1,31 @@
+{
+  "name": "scl/yii2-graylog2",
+  "description": "Graylog target with custom info",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Alex Shvedov",
+      "email": "alexeii.shvedov@gmail.com"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {
+    "php": ">=7.0",
+    "yiisoft/yii2": ">=2.0.12",
+    "graylog2/gelf-php": "~1.5.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "scl\\graylog\\": "src/"
+    }
+  },
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://asset-packagist.org"
+    }
+  ],
+  "extra": {
+  }
+}

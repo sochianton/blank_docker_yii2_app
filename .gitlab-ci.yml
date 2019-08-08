@@ -1,0 +1,266 @@
+variables:
+  DOCKER_DRIVER: overlay2
+  GIT_STRATEGY: fetch
+  GIT_SUBMODULE_STRATEGY: none
+  IMAGE_PHP: gitlab.icerockdev.com:4567/docker/dev-alpine-php-7.3:latest
+  DOCKER_BUILD_IMAGE: docker:latest
+  PHP_BUILD_IMAGE: gitlab.icerockdev.com:4567/docker/prod-alpine-php-7.3:latest
+  NGINX_BUILD_IMAGE: gitlab.icerockdev.com:4567/docker/nginx-letsencrypt:latest
+  INIT_ARCHIVE: init.tar.gz
+  BUILD_ARCHIVE: build.tar.gz
+  SYNC_FOLDER: docker/sync
+
+stages:
+  - init
+  - build
+  - make-image
+  - deploy
+
+## Definitions section
+.only_dev_definition: &only_definition
+  only:
+    - develop
+    - test
+.only_prod_definition: &only_prod_definition
+  only:
+    - /^release\/*/ # tag only
+  except:
+    - branches
+.docker_dind_tag_definition: &docker_dind_tag_definition
+  tags:
+    - docker-dind
+  services:
+    - docker:dind
+## End definitions section
+
+## Init section
+## ---------------------------------------------------------------------------------------------------------------------
+.init: &init
+  <<: *docker_dind_tag_definition
+  stage: init
+  script:
+    # configure env
+    - echo "IMAGE_NGINX=${IMAGE_NGINX}:${CI_TAG}" >> docker/${BUILD_ENV}/.env
+    - echo "IMAGE_PHP=${IMAGE_PHP}:${CI_TAG}" >> docker/${BUILD_ENV}/.env
+    # save images name
+    - mkdir -p docker/build
+    - echo "${IMAGE_NGINX}" > docker/build/nginx
+    - echo "${IMAGE_PHP}" > docker/build/php
+    - echo "${CI_TAG}" >> docker/build/tag
+    - echo "${BUILD_ENV}" >> docker/build/build_env
+    - echo "${PHP_INIT_ENV}" >> docker/build/php_init_env
+    - tar --exclude='.git' -czf ../${INIT_ARCHIVE} ./docker
+    - mv ../${INIT_ARCHIVE} ${INIT_ARCHIVE}
+  artifacts:
+    paths:
+      - ${INIT_ARCHIVE}
+    expire_in: 1 days
+
+init-dev:
+  <<: *init
+  <<: *only_definition
+  before_script:
+    - export IMAGE_PHP=${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_COMMIT_REF_SLUG}/php
+    - export IMAGE_NGINX=${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_COMMIT_REF_SLUG}/nginx
+    - export CI_TAG=`date +"%d.%m.%H.%M"`
+  environment:
+    name: dev
+  variables:
+    BUILD_ENV: 'dev'
+    PHP_INIT_ENV: 'Development'
+
+### Production Init
+init-prod:
+  <<: *init
+  <<: *only_prod_definition
+  before_script:
+    - export IMAGE_PHP=${CI_REGISTRY}/${CI_PROJECT_PATH}/production/app
+    - export IMAGE_NGINX=${CI_REGISTRY}/${CI_PROJECT_PATH}/production/nginx
+    - TMP=`echo ${CI_COMMIT_TAG} | sed 's/release\///g'`
+    - export CI_TAG=${TMP}
+  environment:
+    name: prod
+  variables:
+    BUILD_ENV: 'prod'
+    PHP_INIT_ENV: 'Production'
+
+## ---------------------------------------------------------------------------------------------------------------------
+## End init section
+
+## Build php section
+## ---------------------------------------------------------------------------------------------------------------------
+.build-php: &build-php
+  <<: *docker_dind_tag_definition
+  image: ${IMAGE_PHP}
+  stage: build
+  cache:
+    paths:
+      - /composer/cache
+  before_script:
+    - tar -xzf ${INIT_ARCHIVE}
+    - rm ${INIT_ARCHIVE}
+    - export PHP_INIT_ENV=`cat docker/build/php_init_env`
+  script:
+    # Backend Build
+    - composer install --prefer-dist
+    - php init --env=${PHP_INIT_ENV} --overwrite=All
+    - php yii assets
+    - php yii swagger
+    # pack images
+    - tar --exclude='.git' -czf ../${BUILD_ARCHIVE} ./
+    - mv ../${BUILD_ARCHIVE} ${BUILD_ARCHIVE}
+  artifacts:
+    paths:
+      - ${BUILD_ARCHIVE}
+    expire_in: 1 days
+
+### Develop BUILD
+build-php-dev:
+  <<: *build-php
+  <<: *only_definition
+
+
+### Production BUILD
+build-php-prod:
+  <<: *build-php
+  <<: *only_prod_definition
+
+## End build php section
+## ---------------------------------------------------------------------------------------------------------------------
+
+## Make section
+.make_php_template: &make_php_template
+  <<: *docker_dind_tag_definition
+  stage: make-image
+  image: ${DOCKER_BUILD_IMAGE}
+  before_script:
+    - tar -xzf ${BUILD_ARCHIVE}
+    - rm ${BUILD_ARCHIVE}
+    - export IMAGE_PHP=`cat docker/build/php`
+    - export CI_TAG=`cat docker/build/tag`
+  script:
+    #login
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
+    - docker pull $PHP_BUILD_IMAGE
+    # build
+    - docker build --cache-from $PHP_BUILD_IMAGE -t $IMAGE_PHP:latest -t $IMAGE_PHP:$CI_TAG -f docker/${BUILD_ENV}/Dockerfile .
+    # push images
+    - docker push $IMAGE_PHP:latest
+    - docker push $IMAGE_PHP:$CI_TAG
+
+.make_nginx_template: &make_nginx_template
+  <<: *docker_dind_tag_definition
+  stage: make-image
+  image: ${DOCKER_BUILD_IMAGE}
+  before_script:
+    - tar -xzf ${BUILD_ARCHIVE}
+    - rm ${BUILD_ARCHIVE}
+    - export IMAGE_NGINX=`cat docker/build/nginx`
+    - export CI_TAG=`cat docker/build/tag`
+  script:
+    #login
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" "$CI_REGISTRY" --password-stdin
+    - docker pull $NGINX_BUILD_IMAGE
+    # build
+    - docker build --cache-from $NGINX_BUILD_IMAGE -t $IMAGE_NGINX:latest -t $IMAGE_NGINX:$CI_TAG -f docker/${BUILD_ENV}/Dockerfile.nginx .
+    # push images
+    - docker push $IMAGE_NGINX:latest
+    - docker push $IMAGE_NGINX:$CI_TAG
+
+## start make options
+
+make_php_dev:
+  <<: *only_definition
+  <<: *make_php_template
+  variables:
+    BUILD_ENV: 'dev'
+
+make_php_prod:
+  <<: *only_prod_definition
+  <<: *make_php_template
+  variables:
+    BUILD_ENV: 'prod'
+
+make_nginx_dev:
+  <<: *only_definition
+  <<: *make_nginx_template
+  variables:
+    BUILD_ENV: 'dev'
+
+make_nginx_prod:
+  <<: *only_prod_definition
+  <<: *make_nginx_template
+  variables:
+    BUILD_ENV: 'prod'
+
+## End make section
+
+## Deploy section
+
+#pages:
+#  <<: *only_definition
+#  <<: *docker_dind_tag_definition
+#  stage: deploy
+#  script:
+#  - mkdir public
+#  - cp ./swagger/swagger.yaml ./public/index.html
+#  artifacts:
+#    paths:
+#    - public
+
+.deploy_template: &deploy_template
+  <<: *docker_dind_tag_definition
+  stage: deploy
+  before_script:
+    - eval $(ssh-agent -s)
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    # Remote
+    - echo -n "$DEPLOY_KEY" | ssh-add - > /dev/null
+    - ssh-keyscan -p$REMOTE_PORT -4 $REMOTE_HOST >> ~/.ssh/known_hosts
+    # unpack artifact
+    - tar -xzf ${BUILD_ARCHIVE}
+    - rm ${BUILD_ARCHIVE}
+  #  image: ${DOCKER_BUILD_IMAGE}
+  # TODO: change to minimal custom image with rsync and openssh
+  image: gitlab.icerockdev.com:4567/scl/docker-image/docker-ci-php
+  when: manual # only manual run by button
+  script:
+    # prepare
+    - mkdir -p ${SYNC_FOLDER}
+    - cp docker/${BUILD_ENV}/.env ${SYNC_FOLDER}/.env
+    - cp docker/${BUILD_ENV}/docker-compose.yml ${SYNC_FOLDER}/docker-compose.yml
+    # configure env
+    - echo "DB_PASSWORD=$DB_PASSWORD" >> ${SYNC_FOLDER}/.env
+    - echo "DB_ROOT=$DB_ROOT" >> ${SYNC_FOLDER}/.env
+    # Deploy
+    - chmod 777 ./docker/deploy/deploy.sh
+    - ./docker/deploy/deploy.sh
+
+deploy-dev:
+  <<: *only_definition
+  <<: *deploy_template
+  variables:
+    DB_PASSWORD: ${DEV_DB_PASSWORD}
+    DB_ROOT: ${DEV_DB_ROOT}
+    REMOTE_HOST: ${DEV_REMOTE_HOST}
+    REMOTE_PORT: ${DEV_REMOTE_PORT}
+    REMOTE_USER: ${DEV_REMOTE_USER}
+    REMOTE_DIR: ${DEV_REMOTE_DIR}
+    DEPLOY_KEY: ${DEV_SSH_DEPLOY_KEY}
+    BUILD_ENV: 'dev'
+
+deploy-prod:
+  <<: *only_prod_definition
+  <<: *deploy_template
+  variables:
+    DB_PASSWORD: ${PROD_DB_PASSWORD}
+    DB_ROOT: ${PROD_DB_ROOT}
+    REMOTE_HOST: ${PROD_REMOTE_HOST}
+    REMOTE_PORT: ${PROD_REMOTE_PORT}
+    REMOTE_USER: ${PROD_REMOTE_USER}
+    REMOTE_DIR: ${PROD_REMOTE_DIR}
+    DEPLOY_KEY: ${PROD_SSH_DEPLOY_KEY}
+    BUILD_ENV: 'prod'
+
+## End Deploy section

@@ -1,0 +1,33 @@
+{
+  "name": "scl/yii2-push",
+  "description": "Mail sender over queue",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Alex Shvedov",
+      "email": "alexeii.shvedov@gmail.com"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {
+    "php": ">=7.1",
+    "yiisoft/yii2": ">=2.0.13",
+    "yiisoft/yii2-queue": "~2.0",
+    "paragraph1/php-fcm": ">=0.7",
+    "guzzlehttp/guzzle": "^6.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "scl\\yii\\push\\": "src/"
+    }
+  },
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://asset-packagist.org"
+    }
+  ],
+  "extra": {
+  }
+}

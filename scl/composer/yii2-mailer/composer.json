@@ -1,0 +1,33 @@
+{
+  "name": "scl/mailer",
+  "description": "Mail sender over queue",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Alex Shvedov",
+      "email": "alexeii.shvedov@gmail.com"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {
+    "php": ">=7.0",
+    "yiisoft/yii2": ">=2.0.13",
+    "yiisoft/yii2-queue": "~2.0.2",
+    "phpmailer/phpmailer": "*",
+    "soundasleep/html2text": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "scl\\mailer\\": "src/"
+    }
+  },
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://asset-packagist.org"
+    }
+  ],
+  "extra": {
+  }
+}

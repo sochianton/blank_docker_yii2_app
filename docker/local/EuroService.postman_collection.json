@@ -1,0 +1,1119 @@
+{
+	"info": {
+		"_postman_id": "b3552606-c66f-4b77-a4ca-779d278b2ede",
+		"name": "EuroService",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "/v1/customer",
+			"item": [
+				{
+					"name": "/login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"customer@euroservice.com\",\n\t\"password\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/customer/v1/login",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"customer",
+								"v1",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"customer@euroservice.com\",\n\t\"password\": \"1234567\"\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/customer/v1/profile",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"customer",
+								"v1",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"customer@euroservice.com\",\n    \"phone\": \"\",\n    \"name\": \"Custo-\",\n    \"secondName\": \"--\",\n    \"lastName\": \"Mer-\"\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/customer/v1/profile",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"customer",
+								"v1",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/profile/transactions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"customer@euroservice.com\",\n    \"phone\": \"\",\n    \"name\": \"Custo-\",\n    \"secondName\": \"--\",\n    \"lastName\": \"Mer-\"\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/customer/v1/profile/transactions",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"customer",
+								"v1",
+								"profile",
+								"transactions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/profile/photo",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+                              "value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+                          "mode": "raw",
+                          "raw": "{\n\t\"photo\": {\n\t\t\"name\": \"800x600.png\",\n\t\t\"content\": \"data:image/png;base64,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\"\n\t}\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/customer/v1/profile/photo",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"customer",
+								"v1",
+								"profile",
+								"photo"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/profile/fcm-token",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{apiUrl}}/customer/v1/profile/fcm-token",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"customer",
+								"v1",
+								"profile",
+								"fcm-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/profile/fcm-token/<token>",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{apiUrl}}/customer/v1/profile/fcm-token/testtoken",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"customer",
+								"v1",
+								"profile",
+								"fcm-token",
+								"testtoken"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/profile/remove-all-fcm-tokens",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{apiUrl}}/customer/v1/profile/fcm-token",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"customer",
+								"v1",
+								"profile",
+								"fcm-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/bid",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"customer@euroservice.com\",\n\t\"password\": \"1234567\"\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/customer/v1/bid",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"customer",
+								"v1",
+								"bid"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/bid/<bidId>",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"customer@euroservice.com\",\n\t\"password\": \"1234567\"\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/customer/v1/bid/2",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"customer",
+								"v1",
+								"bid",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/bid/<bidId>",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"customer@euroservice.com\",\n\t\"password\": \"1234567\"\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/customer/v1/bid/2",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"customer",
+								"v1",
+								"bid",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/bid/approve/<bidId>",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+                      "method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+                          "raw": "{\n\t\"approve\": true\n}"
+						},
+						"url": {
+                          "raw": "{{apiUrl}}/customer/v1/bid/approve/1",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"customer",
+								"v1",
+								"bid",
+								"approve",
+                              "1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/bid",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+                          "raw": "{\n    \"name\": \"Заявка комментарий\",\n    \"price\": 55999,\n    \"object\": \"ул. Советская 23, оф. 666\",\n    \"comment\": \"Комментарий\",\n    \"completeAt\": 1557311316,\n    \"works\": [\n        1,\n        2\n    ],\n    \"photos\": [\n        {\n            \"name\": \"1.png\",\n            \"content\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAABkBAMAAAAxqGI4AAAAG1BMVEXMzMyWlpacnJyqqqrFxcWxsbGjo6O3t7e+vr6He3KoAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACbElEQVRoge2XzW/aMBiHf04I4ZgECjs6Kds4sq6Vdgwf6jlw6BkkJHpMmESv0B32b++1EyBeAbWFoU17HymvMW/w4484MgDDMAzDMAzDMAzDMAzzZ6jcfIqBRZAWYYctsT/xdqwgbMDxw1YeSvRIsjfxdkZdp45euxbkYcfPkCT7Eu9gGiNAluLLSgcg6yJLKOH7JCknTiACQmVaJzrQ/H1Q3wFPmYSROIEn0EhCmpiuDkCt6eQrICSMxEm4ddX13kQHqk/VEAqJkTiFUYPGQk0GebtY++lWYiROwA5WZoftJraSM42kEs5+m3or2EnOtCbVOvRDlCU6UCULk63ESLyfTPXR2A5Rv7GVnGmfUDfNje1cOfWt5Ew7PoyiyHhF9SXCeCM507vLJ4yX7SjJp1BLzvQWZhiGYRjmv0AU178i8YPb10k8qgl1aKLTneWpKjEI58C9P4OQ+rR8AK/y9fUSHZsrLAtJ5WP8g8JwHItHuNPDEvRxcw0rdumDE3Uhxp4q7GikJONrVFPKlCStCeaFxE7y4HTFEtXsmMSZ3Sd22sN3PAzvIGa6eBiqjglK1STuyhKvU5OFxIrzUJHCWj0fXkCaLiuuyFp3nH5Dm/osYl200VMSSmFO1+YQqyTLalpIxCZ4wp3MD0to4XUHZWciVUPqN6rwNmvi4dlOjZFYC7wcCT7LIyNRd6nuTh4n1H3dkipKI7HGMCTOFV6uCZ3Oj0rUmmCcLhIs44FqSRW7NYHbMiW6omPp6cKxTaVupqcL67gXww076lZV7J4uuHKPJJ/Sgb/ZJ0clr6B6ib8kiws4ROcCEob5e/gFq0J5/0u/+HwAAAAASUVORK5CYII=\"\n        },\n        {\n            \"name\": \"2.png\",\n            \"content\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAABkBAMAAAAxqGI4AAAAG1BMVEXMzMyWlpacnJyqqqrFxcWxsbGjo6O3t7e+vr6He3KoAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACbElEQVRoge2XzW/aMBiHf04I4ZgECjs6Kds4sq6Vdgwf6jlw6BkkJHpMmESv0B32b++1EyBeAbWFoU17HymvMW/w4484MgDDMAzDMAzDMAzDMAzzZ6jcfIqBRZAWYYctsT/xdqwgbMDxw1YeSvRIsjfxdkZdp45euxbkYcfPkCT7Eu9gGiNAluLLSgcg6yJLKOH7JCknTiACQmVaJzrQ/H1Q3wFPmYSROIEn0EhCmpiuDkCt6eQrICSMxEm4ddX13kQHqk/VEAqJkTiFUYPGQk0GebtY++lWYiROwA5WZoftJraSM42kEs5+m3or2EnOtCbVOvRDlCU6UCULk63ESLyfTPXR2A5Rv7GVnGmfUDfNje1cOfWt5Ew7PoyiyHhF9SXCeCM507vLJ4yX7SjJp1BLzvQWZhiGYRjmv0AU178i8YPb10k8qgl1aKLTneWpKjEI58C9P4OQ+rR8AK/y9fUSHZsrLAtJ5WP8g8JwHItHuNPDEvRxcw0rdumDE3Uhxp4q7GikJONrVFPKlCStCeaFxE7y4HTFEtXsmMSZ3Sd22sN3PAzvIGa6eBiqjglK1STuyhKvU5OFxIrzUJHCWj0fXkCaLiuuyFp3nH5Dm/osYl200VMSSmFO1+YQqyTLalpIxCZ4wp3MD0to4XUHZWciVUPqN6rwNmvi4dlOjZFYC7wcCT7LIyNRd6nuTh4n1H3dkipKI7HGMCTOFV6uCZ3Oj0rUmmCcLhIs44FqSRW7NYHbMiW6omPp6cKxTaVupqcL67gXww076lZV7J4uuHKPJJ/Sgb/ZJ0clr6B6ib8kiws4ROcCEob5e/gFq0J5/0u/+HwAAAAASUVORK5CYII=\"\n        }\n    ],\n    \"files\": [\n        {\n            \"name\": \"1.xlsx\",\n            \"content\": \"data:application/vndopenxmlformats-officedocumentspreadsheetmlsheet;base64,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\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/customer/v1/bid",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"customer",
+								"v1",
+								"bid"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/bid/search",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"customer@euroservice.com\",\n\t\"password\": \"1234567\"\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/customer/v1/bid/search?term=Зая",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"customer",
+								"v1",
+								"bid",
+								"search"
+							],
+							"query": [
+								{
+									"key": "term",
+									"value": "Зая"
+								}
+							]
+						}
+					},
+					"response": []
+                },
+              {
+                "name": "/work",
+                "request": {
+                  "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                      {
+                        "key": "token",
+                        "value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "method": "GET",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "name": "Content-Type",
+                      "type": "text",
+                      "value": "application/json"
+                    }
+                  ],
+                  "body": {
+                    "mode": "raw",
+                    "raw": "{\n\t\"email\": \"customer@euroservice.com\",\n\t\"password\": \"1234567\"\n}"
+                  },
+                  "url": {
+                    "raw": "{{apiUrl}}/customer/v1/work?category=10",
+                    "host": [
+                      "{{apiUrl}}"
+                    ],
+                    "path": [
+                      "customer",
+                      "v1",
+                      "work"
+                    ],
+                    "query": [
+                      {
+                        "key": "category",
+                        "value": "10"
+                      }
+                    ]
+                  }
+                },
+                "response": []
+				}
+			]
+		},
+		{
+			"name": "/v1/employee",
+			"item": [
+				{
+					"name": "/login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"employee@euroservice.com\",\n\t\"password\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/employee/v1/login",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"employee",
+								"v1",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "wo0zZbaG7-C06OpjI3fNUvsAy6iSUIRb",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"customer@euroservice.com\",\n\t\"password\": \"1234567\"\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/employee/v1/profile",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"employee",
+								"v1",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "wo0zZbaG7-C06OpjI3fNUvsAy6iSUIRb",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"employee@euroservice.com\",\n    \"phone\": \"\",\n    \"name\": \"Emplo-\",\n    \"secondName\": \"----\",\n    \"lastName\": \"Yee-\"\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/employee/v1/profile",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"employee",
+								"v1",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/profile/photo",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+                              "value": "application/json",
+                              "type": "text"
+							}
+						],
+						"body": {
+                          "mode": "raw",
+                          "raw": "{\n\t\"photo\": {\n\t\t\"name\": \"800x600.png\",\n\t\t\"content\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAyAAAAJYBAMAAABoWJ9DAAAAG1BMVEXMzMyWlpacnJyqqqrFxcWxsbGjo6O3t7e+vr6He3KoAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAK3ElEQVR4nO3dSXMbxxkA0MFCAEcOlcg5YmTL1lF04uUIyColR0HlUuVIKHLkIymnVDkStlL520EPZmkADYlEyZGTea9KJDhLN/V1Ty+zMcsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD4nzJ8/uLs79/vLPzlRf7p5c6yydfF2TfH5TF5Xpz9MLtBcql8O2Zc5MEXWwtfh0VnTxMb3j8+j7uz9yaXyrdjJst840G08Mlm0dksWjasNvzs9nnUu/7+fcml8u2aVV5rW4phke9H61F+dLTqXfOH704umW/HjJvyiOpvE8AoWk2wbh+tdtc7704ulW/XtAdIdIgsm0UXzYajZtnd2+bRT2SRTC6Vb9cUbbDy31XLoqPmk2bDq0RUb+i83bU5HFLJJfPtmEH433/zePivIqqr8/D5n8M3Yd2sWjYMP7y6/vMyKrgbmoRd778dhhFU3Swmk0vl2zUhBi/Dh3IQer1ZuKyqbYhg3Q2PqmobtruTSumwfl0Qi3Xn8K7kUvl2zaKJx6MmCqH2/iF8mETVd16X1+rW1feqbpZO2vYplVwy364pmv4zDHtOy09t3K7aNmZRt+uhob/dxK1oUlk2uaWSS+bbMcO2nQpRKOtnaGKq3mTUtjFtya2jOr1NHqG+Vzus6jJPJpfMt2PG0aizX1fLpmTKWF7XG9Ylt2pW38yg3XVU75pMLpVv1wyituGkLpzzdhqwrPuVQVtyo1v26vN215M6u2RyqXy7ZhTV9kndThTt1OCqbk/67dRgfMv2pK34IYs7h5NL5ds1/Wg4M6wiE/qVetm8Xj9vWv9y/ewWeZxHwa2Dn0oumW/X9NvAhGiVAYn7lVFdk6+isxnL283Vi2hU9uLevYPJJfPtml5UIHUNHUTBOKnbmPOoEBa7DXyYaFy0e2z3+cNUB51KLplv16SarP6BfuW6XrjabeBHUSH0d2fZ46glaqSSS+bbNXEQ6iYjddRkcVTncTsXhFFqHb/Fbg8zSJ0eTiWXzLdr4iFsHbl5fAAUm/AO4xrb3+txz5s59jDfnWT3E7PuZHKpfDtnEEVmXkVuFbc5y03bMonb9NHezHDeTMYH+W571kv0z8nkUvl2TnxialEF5ioOTNX7juMIDvZCfNJcwZjvXS5JjWCTyaXy7Z5863TFNHxYxCcPqx9O4nbnZL8RKuoj7Xyvx9icv5p8XXz+zSyZwkl7cn4v3+45b65fr+rh0VblrKrt1kEx3h+TXlVH2mR30FtNuiflhck7s2pZMrlUvt2zqhubk+Yy3VbzvdrMMLa6jcn+uKlfXcEY7V9aWoQUwtgr6u6TyaXy7Z5BdXm1vIS7qbXLeIDTFkjbESQKZFJFO3H1al3xHw7yysVmWTK5VL4d1N7oUYdga8Q53yzdGukOEzOL5aYkiv3uJZy4XdQ5VE1dMrlUvh00aMujitZuYKbZfgT3ptHzsq0Kg7bdu7bWBfJ9m8emPUsml8q3i652gnVcgQzKTqS/N+gtC+RNWyDNNUkFckhbIC83C4r4rEWvKZDobEmiQIblEbZIrFkntwx398zKW342q5PJpfLtoKjJqsa/+U5gTrPt80w7W1RCN/G2SFzdLQe8Z9dZdffo0yjV7eRS+XbQedSpb5r/4woktFY/5ImuuGhTDoPiaZTqdnIKJIgOkHrsdFyB1LeBznZXRMfesD6CFMhBZQ/yw9vhv8vhb9khb7Xl80QfkurU6/Hz/mWltisvZxflBsnkUvl2T2hQyid1yud2ptWiWbP+pqOs+jb6/SvhedSODaqjwCjrkHHTUJXBKqfqRxbIpvHbPyMYivy6+lzfb6VADhlF1ff8HTPm987Uq/vZEwVVxEurO33M1A+ZRw8rPaq65GNOLgaLPHmrSBF3LOeb6aeTi4dcRTEcV736sQUSOpHEyGi589TPweQUSLZ9E1tWnT05P+J6SBBGBYl71pdx8Ks7TFwPOeR857LpRXbcFcOsek4qcWfCMu4vqr7aFcNDlju18iI76pp6sHmyc79an+8UyOmh5FL5dk6xc1Fomu0038vmrpO229i/6yS4OjAPuYp7lmoCnkwulW/npMb+W1OA4kb3ZVVb5qnefrVTINNDyaXy7Zz3nbe62Z2LwUl1Lut6d8U80Ye4c/GQ3QKZZsfc2xuES4Y/54k1vZ0CuTiUnHt7s3STtfNUVXP3ezPqWRzou++OU1PDfmIekkwumW/XxDW1rr5HPR+yeaR5mb642w5x69FsKjnPh2RlMNrhfjXMOeoJqs1JsVXi9GIc52bwlErOE1TZzsSwrr7FEc8Yrsr+fJQY+Mbl13z2jOEBV3EA6+p7fsRTuJtTiJPUJaqiPWqa4HsK94B51MA3TcYq8bx49OT4KjEvHFeHxnmiOYvOlzXPiiSTS+XbNf0ogE2tPeJNDvWDbPN8/yxtVOjtAZlKzpscNtO5i+rzqm7Xj3jXyaIq2EG+f/iMmuo+bIshlZx3nWyaqepdoe0rSW7/NqBh3XcME1cN20cUHuXeBvQ+odHfvCB20VbV9cKzELir6PTtoNpwnOq3B00EF/n+JKWoUg4PidyN9thLLpVv15Svnbz/NvvLl1HdDtX37j9Sb5Sbpd8oN28Ks584exIOgrO/bnat27Nkcql8u2aSR+po3fqdi8smgmHX3eY/vhmvqfip5LxzMcvqZ5u2o7VsFl00G77jraT14zpBkajdRWJXbyU94KSJQdQ13PK9vfUDbcFVvt/+r/L9Xb2395D2EGnjeMs3W4dCqEfC8Ws2ak27GL/83ZutD2je/R6/jf/JfgCbl7W/3EuiiMa6k1SbVgc/PnSSyaXy7ZzxJjLbf6bgWVl5tyeAJ8X+djdU/tGD/Mf3J5fKt3OGP73IP/92Z+FPxf7f8Rh/mR/790N+eXH2t90/UZJMLpUvAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPAx9ap//EYokI8iP/vTgTU7BXK6/qmX53l2lmX90/Dj2nfFqyx7kr/MetMsK37d37QjTod/PLAmUSDl17vX2ZuqQIb3Z7+svzx+Nuv9mI2Xv/5v2wGn2aPsy0+z/my8/nBy72HWe3Yavg3uLdZre88+zUaX6zVRgXxykb2qCmTwdPPl5GHvTTa6+pj/j/8b6wI5efnk6eBynv2UPX/8VdZ7WX57/jhU+N561WSafZVFBXL6YDKtCqQ/23wZTnv96591OB/Cusnqz4bTycNnl99mn62Phd6s/PZZNl+v7a1XZa/W/9adTeg/ygJ5M7qsCqRXfzntjS9eKZAPYd2plxV/+uBiGoIe4hu+ndZ9yGn28+Ayi4+Q/uts/wjJvpgqkA/hNEQ0HAYXP16sD4sy6uFbdIT0n1UbVgVy8vtsvw/JFk8VyIewDmzoQ7Jnl6+fZm9m34Woh29tH5KNP6k2rAqk/KH8Go2yMpOWDyMEdj3Kylaz+SwbFw9CWMO3dpSVjafVhnGBbJq17/J6HpIpkP+a0eXH/g3Y8vpj/wJs6T342L8BAAD85vwHX8Lwzb3G7cAAAAAASUVORK5CYII=\"\n\t}\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/employee/v1/profile/photo",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"employee",
+								"v1",
+								"profile",
+								"photo"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/bid",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"customer@euroservice.com\",\n\t\"password\": \"1234567\"\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/employee/v1/bid",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"employee",
+								"v1",
+								"bid"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/bid/search",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"customer@euroservice.com\",\n\t\"password\": \"1234567\"\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/employee/v1/bid/search?term=Зая",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"employee",
+								"v1",
+								"bid",
+								"search"
+							],
+							"query": [
+								{
+									"key": "term",
+									"value": "Зая"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/bid/<bidId>",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"email\": \"customer@euroservice.com\",\n\t\"password\": \"1234567\"\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/employee/v1/bid/2",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"employee",
+								"v1",
+								"bid",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/bid/apply/<bidId>",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+                      "method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"apply\": false\n}"
+						},
+						"url": {
+							"raw": "{{apiUrl}}/employee/v1/bid/apply/2",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"employee",
+								"v1",
+								"bid",
+								"apply",
+								"2"
+							]
+						}
+					},
+                  "response": []
+                },
+              {
+                "name": "/bid/done/<bidId>",
+                "request": {
+                  "auth": {
+                    "type": "bearer",
+                    "bearer": [
+                      {
+                        "key": "token",
+                        "value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "method": "PUT",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "name": "Content-Type",
+                      "type": "text",
+                      "value": "application/json"
+                    }
+                  ],
+                  "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"comment\": \"Комментарий исполнителя бла-бла\",\n  \"photos\": [\n    {\n      \"name\": \"1.png\",\n      \"content\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAABkBAMAAAAxqGI4AAAAG1BMVEXMzMyWlpacnJyqqqrFxcWxsbGjo6O3t7e+vr6He3KoAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACbElEQVRoge2XzW/aMBiHf04I4ZgECjs6Kds4sq6Vdgwf6jlw6BkkJHpMmESv0B32b++1EyBeAbWFoU17HymvMW/w4484MgDDMAzDMAzDMAzDMAzzZ6jcfIqBRZAWYYctsT/xdqwgbMDxw1YeSvRIsjfxdkZdp45euxbkYcfPkCT7Eu9gGiNAluLLSgcg6yJLKOH7JCknTiACQmVaJzrQ/H1Q3wFPmYSROIEn0EhCmpiuDkCt6eQrICSMxEm4ddX13kQHqk/VEAqJkTiFUYPGQk0GebtY++lWYiROwA5WZoftJraSM42kEs5+m3or2EnOtCbVOvRDlCU6UCULk63ESLyfTPXR2A5Rv7GVnGmfUDfNje1cOfWt5Ew7PoyiyHhF9SXCeCM507vLJ4yX7SjJp1BLzvQWZhiGYRjmv0AU178i8YPb10k8qgl1aKLTneWpKjEI58C9P4OQ+rR8AK/y9fUSHZsrLAtJ5WP8g8JwHItHuNPDEvRxcw0rdumDE3Uhxp4q7GikJONrVFPKlCStCeaFxE7y4HTFEtXsmMSZ3Sd22sN3PAzvIGa6eBiqjglK1STuyhKvU5OFxIrzUJHCWj0fXkCaLiuuyFp3nH5Dm/osYl200VMSSmFO1+YQqyTLalpIxCZ4wp3MD0to4XUHZWciVUPqN6rwNmvi4dlOjZFYC7wcCT7LIyNRd6nuTh4n1H3dkipKI7HGMCTOFV6uCZ3Oj0rUmmCcLhIs44FqSRW7NYHbMiW6omPp6cKxTaVupqcL67gXww076lZV7J4uuHKPJJ/Sgb/ZJ0clr6B6ib8kiws4ROcCEob5e/gFq0J5/0u/+HwAAAAASUVORK5CYII=\"\n    },\n    {\n      \"name\": \"2.png\",\n      \"content\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAABkBAMAAAAxqGI4AAAAG1BMVEXMzMyWlpacnJyqqqrFxcWxsbGjo6O3t7e+vr6He3KoAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACbElEQVRoge2XzW/aMBiHf04I4ZgECjs6Kds4sq6Vdgwf6jlw6BkkJHpMmESv0B32b++1EyBeAbWFoU17HymvMW/w4484MgDDMAzDMAzDMAzDMAzzZ6jcfIqBRZAWYYctsT/xdqwgbMDxw1YeSvRIsjfxdkZdp45euxbkYcfPkCT7Eu9gGiNAluLLSgcg6yJLKOH7JCknTiACQmVaJzrQ/H1Q3wFPmYSROIEn0EhCmpiuDkCt6eQrICSMxEm4ddX13kQHqk/VEAqJkTiFUYPGQk0GebtY++lWYiROwA5WZoftJraSM42kEs5+m3or2EnOtCbVOvRDlCU6UCULk63ESLyfTPXR2A5Rv7GVnGmfUDfNje1cOfWt5Ew7PoyiyHhF9SXCeCM507vLJ4yX7SjJp1BLzvQWZhiGYRjmv0AU178i8YPb10k8qgl1aKLTneWpKjEI58C9P4OQ+rR8AK/y9fUSHZsrLAtJ5WP8g8JwHItHuNPDEvRxcw0rdumDE3Uhxp4q7GikJONrVFPKlCStCeaFxE7y4HTFEtXsmMSZ3Sd22sN3PAzvIGa6eBiqjglK1STuyhKvU5OFxIrzUJHCWj0fXkCaLiuuyFp3nH5Dm/osYl200VMSSmFO1+YQqyTLalpIxCZ4wp3MD0to4XUHZWciVUPqN6rwNmvi4dlOjZFYC7wcCT7LIyNRd6nuTh4n1H3dkipKI7HGMCTOFV6uCZ3Oj0rUmmCcLhIs44FqSRW7NYHbMiW6omPp6cKxTaVupqcL67gXww076lZV7J4uuHKPJJ/Sgb/ZJ0clr6B6ib8kiws4ROcCEob5e/gFq0J5/0u/+HwAAAAASUVORK5CYII=\"\n    }\n  ]\n}"
+                  },
+                  "url": {
+                    "raw": "{{apiUrl}}/employee/v1/bid/done/2",
+                    "host": [
+                      "{{apiUrl}}"
+                    ],
+                    "path": [
+                      "employee",
+                      "v1",
+                      "bid",
+                      "done",
+                      "2"
+                    ]
+                  }
+                },
+					"response": []
+				},
+				{
+					"name": "/profile/fcm-token",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{apiUrl}}/employee/v1/profile/fcm-token",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"employee",
+								"v1",
+								"profile",
+								"fcm-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/profile/fcm-token/<token>",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{apiUrl}}/employee/v1/profile/fcm-token/testtoken",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"employee",
+								"v1",
+								"profile",
+								"fcm-token",
+								"testtoken"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/profile/remove-all-fcm-tokens",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "pyuG8nCQxyRwLHfSjHLgL1dc1B6p0W2-",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{apiUrl}}/employee/v1/profile/fcm-token",
+							"host": [
+								"{{apiUrl}}"
+							],
+							"path": [
+								"employee",
+								"v1",
+								"profile",
+								"fcm-token"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

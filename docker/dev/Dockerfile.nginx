@@ -1,0 +1,22 @@
+FROM gitlab.icerockdev.com:4567/docker/nginx-letsencrypt:latest AS build-env
+COPY . /app
+RUN rm -f /app/backend/web/*.php && touch /app/backend/web/index.php # for nginx index
+RUN rm -f /app/api/web/*.php && touch /app/api/web/index.php # for nginx index
+
+FROM gitlab.icerockdev.com:4567/docker/nginx-letsencrypt:latest
+# Копируем артефакт сборки из стадии "build-env" в указанный файл
+COPY --from=build-env /app/backend/web /app/backend/web
+COPY --from=build-env /app/api/web /app/api/web
+COPY --from=build-env /app/docker/dev/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build-env /app/backend/web/assets /app/backend/web/assets
+
+ENV UID=nginx \
+    GUID=nginx
+
+RUN mkdir -p /storage \
+    && ln -sf /storage /app/storage \
+    #    change owner
+    && chmod 777 /storage
+
+VOLUME ["/letsencrypt"]
+WORKDIR /app

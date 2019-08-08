@@ -1,0 +1,30 @@
+{
+  "name": "scl/yii2-activeform",
+  "description": "ActiveForm with required save",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Egor Polezhaev",
+      "email": "stolenqwerty@gmail.com"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {
+    "php": ">=7.0",
+    "yiisoft/yii2": ">=2.0.12"
+  },
+  "autoload": {
+    "psr-4": {
+      "scl\\activeform\\": "src/"
+    }
+  },
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://asset-packagist.org"
+    }
+  ],
+  "extra": {
+  }
+}

@@ -1,0 +1,80 @@
+version: '3'
+services:
+  nginx:
+    image: ${IMAGE_NGINX}
+    ports:
+      - 80:80
+      - 443:443
+    restart: always
+    stop_grace_period: 30s
+    logging: &logging
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+    volumes:
+      - ./nginx-data:/letsencrypt
+      - ./storage:/storage
+    environment:
+      SSL_DOMAIN: 'admin.dev.euroservice.icerockdev.com api.dev.euroservice.icerockdev.com'
+      SSL_EMAIL: 'ssl@icerockdev.com'
+  rabbit:
+    image: ${IMAGE_RABBITMQ}
+    restart: always
+    stop_grace_period: 30s
+    logging: *logging
+    ports:
+      - 127.0.0.1:5672:5672
+    volumes:
+      - ./rabbit-data:/var/lib/rabbitmq
+    environment: &rabbit_config
+      RABBITMQ_HOST: rabbit
+      RABBITMQ_PORT: 5672
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+  web:
+    image: ${IMAGE_PHP}
+    restart: always
+    stop_grace_period: 30s
+    environment: &project_config
+      EMAIL_SERVER: smtp-relay.gmail.com
+      EMAIL_PORT: 587
+      EMAIL_ENCRYPTION: tls # ssl || tls
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      <<: *rabbit_config
+    volumes:
+      - ./storage:/storage
+      - ./runtime:/runtime
+    depends_on:
+      - postgres
+      - rabbit
+  postgres:
+    ports: # only for dev! do not expose this ports in prod mode
+      - 127.0.0.1:5432:5432
+    image: ${IMAGE_POSTGRES}
+    stop_grace_period: 30s
+    logging: *logging
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_ROOT_PASSWORD: db_root_password
+    volumes:
+      - ./postgresql-data:/var/lib/postgresql/data
+    restart: always
+  queue:
+    image: ${IMAGE_PHP}
+    restart: always
+    stop_grace_period: 30s
+    volumes:
+      - ./runtime-queue:/runtime
+      - ./storage-queue:/storage
+    logging: *logging
+    environment: *project_config
+    entrypoint: '/app/docker/deploy/entrypoint-queue.sh'
+    depends_on:
+      - web

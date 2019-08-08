@@ -1,0 +1,5 @@
+.git/*
+/README.md
+/.gitlab-ci.yml
+/.gitignore
+/project.sh
