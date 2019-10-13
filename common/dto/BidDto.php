@@ -109,9 +109,9 @@ class BidDto
         string $object,
         ?string $customerComment,
         ?string $employeeComment,
-        int $completeAt,
-        int $createdAt,
-        int $updatedAt,
+        $completeAt,
+        $createdAt,
+        $updatedAt,
         array $works,
         array $customerPhotos = [],
         array $files = [],
@@ -204,7 +204,7 @@ class BidDto
     /**
      * @return int
      */
-    public function getCreatedAt(): int
+    public function getCreatedAt()
     {
         return $this->createdAt;
     }
@@ -212,7 +212,7 @@ class BidDto
     /**
      * @return int
      */
-    public function getCompleteAt(): int
+    public function getCompleteAt()
     {
         return $this->completeAt;
     }
@@ -260,7 +260,7 @@ class BidDto
     /**
      * @return int
      */
-    public function getUpdatedAt(): int
+    public function getUpdatedAt()
     {
         return $this->updatedAt;
     }

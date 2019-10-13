@@ -2,7 +2,7 @@
 
 namespace api\modules\customer;
 
-use common\models\Customer;
+use common\ar\User;
 use Yii;
 
 /**
@@ -23,7 +23,7 @@ class Module extends \yii\base\Module
         Yii::$app->setComponents([
             'user' => [
                 'class' => yii\web\User::class,
-                'identityClass' => Customer::class,
+                'identityClass' => User::class,
                 'enableAutoLogin' => false,
             ]
         ]);

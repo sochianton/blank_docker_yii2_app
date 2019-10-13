@@ -1,0 +1,19 @@
+.table {
+     margin-bottom: 0px;
+    font-size: 13px;
+}
+.text-white{
+    color:#ffffff;
+}
+.logo{
+    font-size: 35px;
+}
+.sans-pro{
+    font-family: 'Source Sans Pro', cursive;
+}
+[data-icheck] {
+    padding-left: 0 !important;
+}
+[data-icheck] > div {
+    margin-right: 5px;
+}

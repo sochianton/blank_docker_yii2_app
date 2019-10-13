@@ -52,7 +52,8 @@ class Work extends ActiveRecord
             ['name', 'string', 'max' => 100],
             [['commission'], 'integer', 'min' => 0],
             ['commission', 'integer', 'max' => 100],
-            [['price', 'created_at', 'updated_at', 'deleted_at'], 'integer']
+            [['created_at', 'updated_at', 'deleted_at'], 'integer'],
+            [['price'], 'double'],
         ];
     }
 

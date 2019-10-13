@@ -7,12 +7,15 @@ use api\modules\employee\v1\request\BidDoneRequest;
 use api\modules\employee\v1\request\BidSearchRequest;
 use api\modules\employee\v1\response\BidListResponse;
 use api\modules\employee\v1\response\BidResponse;
+use common\ar\Bid;
 use common\service\BidService;
 use scl\yii\tools\controllers\RestController;
 use Yii;
+use yii\base\InvalidConfigException;
 use yii\base\Module;
 use yii\db\StaleObjectException;
 use yii\filters\auth\HttpBearerAuth;
+use yii\helpers\ArrayHelper;
 use yii\web\NotFoundHttpException;
 use yii\web\UnprocessableEntityHttpException;
 
@@ -71,13 +74,14 @@ class BidController extends RestController
      *     @OA\Response(
      *          response="200",
      *          description="ok",
-     *          @OA\JsonContent(ref="#/components/schemas/EmployeeBidListResponse"),
+     *          @OA\JsonContent(ref="#/components/schemas/EmployeeBidListResponse2"),
      *     ),
      *     @OA\Response(response="422", description="Validation failed"),
      *     @OA\Response(response="404", description="Employee not found"),
      * )
      *
-     * @return BidListResponse
+     * @return \api\response\BidListResponse
+     * @throws InvalidConfigException
      */
     public function actionIndex()
     {
@@ -85,9 +89,9 @@ class BidController extends RestController
         $isArchive = ($isArchive === 'true') ? true : false;
 
         $userId = Yii::$app->user->getId();
-        $bids = $this->bidService->getListEmployee($userId, $isArchive);
+        $bids = \common\services\BidService::getListForEmployee($userId, $isArchive);
 
-        return new BidListResponse($bids);
+        return new \api\response\BidListResponse($bids);
     }
 
     /**
@@ -105,21 +109,21 @@ class BidController extends RestController
      *     @OA\Response(
      *          response="200",
      *          description="ok",
-     *          @OA\JsonContent(ref="#/components/schemas/EmployeeBidResponse"),
+     *          @OA\JsonContent(ref="#/components/schemas/BidResponse2"),
      *     ),
      *     @OA\Response(response="422", description="Validation failed"),
      *     @OA\Response(response="404", description="Customer not found"),
      * )
      * @param int $bidId
-     * @return BidResponse
+     * @return \api\response\BidResponse
      * @throws NotFoundHttpException
      */
     public function actionView(int $bidId)
     {
         $userId = Yii::$app->user->getId();
-        $bidDto = $this->bidService->getEmployee($bidId, $userId);
+        $bid = \common\services\BidService::getForEmployee($bidId, $userId);
 
-        return new BidResponse($bidDto);
+        return new \api\response\BidResponse(\common\services\BidService::getDto($bid));
     }
 
     /**
@@ -137,13 +141,14 @@ class BidController extends RestController
      *     @OA\Response(
      *          response="200",
      *          description="ok",
-     *          @OA\JsonContent(ref="#/components/schemas/EmployeeBidListResponse"),
+     *          @OA\JsonContent(ref="#/components/schemas/EmployeeBidListResponse2"),
      *     ),
      *     @OA\Response(response="422", description="Validation failed"),
      *     @OA\Response(response="404", description="Employee not found"),
      * )
      *
-     * @return BidSearchRequest|BidListResponse
+     * @return BidSearchRequest|\api\response\BidListResponse
+     * @throws InvalidConfigException
      */
     public function actionSearch()
     {
@@ -152,9 +157,9 @@ class BidController extends RestController
             return $request;
         }
         $userId = Yii::$app->user->getId();
-        $bids = $this->bidService->searchEmployee($userId, $request->getTerm(), $request->getStatus());
 
-        return new BidListResponse($bids);
+        $bids = \common\services\BidService::searchForEmployee($userId, $request->getTerm(), $request->getStatus());
+        return new \api\response\BidListResponse($bids);
     }
 
     /**
@@ -173,14 +178,14 @@ class BidController extends RestController
      *     @OA\Response(
      *          response="200",
      *          description="ok",
-     *          @OA\JsonContent(ref="#/components/schemas/EmployeeBidResponse"),
+     *          @OA\JsonContent(ref="#/components/schemas/BidResponse2"),
      *     ),
      *     @OA\Response(response="404", description="Bid not found"),
      *     @OA\Response(response="422", description="Validation failed"),
      * )
      *
      * @param int $bidId
-     * @return BidApplyRequest|BidResponse
+     * @return BidApplyRequest|\api\response\BidResponse
      * @throws NotFoundHttpException
      * @throws UnprocessableEntityHttpException
      * @throws \Throwable
@@ -188,15 +193,23 @@ class BidController extends RestController
      */
     public function actionApply(int $bidId)
     {
-        $request = new BidApplyRequest(Yii::$app->request->bodyParams);
-        if (!$request->validate()) {
-            return $request;
-        }
+
+
+
+//        $request = new BidApplyRequest(Yii::$app->request->bodyParams);
+//        if (!$request->validate()) {
+//            return $request;
+//        }
+//
+//        die(print_r($request, true));
+//
+//        $userId = Yii::$app->user->getId();
+//        $bid = \common\services\BidService::apply($bidId, $userId, $request->isApply());
 
         $userId = Yii::$app->user->getId();
-        $bidDto = $this->bidService->apply($bidId, $userId, $request->isApply());
+        $bid = \common\services\BidService::apply($bidId, $userId, true);
 
-        return new BidResponse($bidDto);
+        return new \api\response\BidResponse(\common\services\BidService::getDto($bid));
     }
 
     /**
@@ -215,14 +228,14 @@ class BidController extends RestController
      *     @OA\Response(
      *          response="200",
      *          description="ok",
-     *          @OA\JsonContent(ref="#/components/schemas/EmployeeBidResponse"),
+     *          @OA\JsonContent(ref="#/components/schemas/BidResponse2"),
      *     ),
      *     @OA\Response(response="404", description="Bid not found"),
      *     @OA\Response(response="422", description="Validation failed"),
      * )
      *
      * @param int $bidId
-     * @return BidDoneRequest|BidResponse
+     * @return BidDoneRequest|\api\response\BidResponse
      * @throws NotFoundHttpException
      * @throws StaleObjectException
      * @throws UnprocessableEntityHttpException
@@ -236,8 +249,54 @@ class BidController extends RestController
         }
 
         $userId = Yii::$app->user->getId();
-        $bidDto = $this->bidService->done($bidId, $userId, $request->getComment(), $request->getPhotos());
+        $bid = \common\services\BidService::done($bidId, $userId, $request->getComment(), $request->getPhotos());
+        return new \api\response\BidResponse(\common\services\BidService::getDto($bid));
 
-        return new BidResponse($bidDto);
+//        $bidDto = $this->bidService->done($bidId, $userId, $request->getComment(), $request->getPhotos());
+//
+//        return new BidResponse($bidDto);
+    }
+
+    /**
+     * @OA\Get(
+     *     tags={"bid employee"},
+     *     path="/employee/v1/bid/search-all-open",
+     *     summary="getting search results of all open bids",
+     *     description="getting search results of all open bids",
+     *
+     *     @OA\Response(
+     *          response="200",
+     *          description="ok",
+     *          @OA\JsonContent(ref="#/components/schemas/BidResponse2"),
+     *     ),
+     *     @OA\Response(response="422", description="Validation failed"),
+     *     @OA\Response(response="404", description="Employee not found"),
+     * )
+     *
+     * @return \api\response\BidResponse[]
+     * @throws \Throwable
+     */
+    public function actionSearchAllOpen(){
+
+        $bid = new Bid();
+
+//        $params = [$bid->formName() => Yii::$app->request->queryParams];
+//        $params[$bid->formName()]['status'] = Bid::STATUS_NEW;
+
+        $params = ArrayHelper::merge(Yii::$app->request->queryParams, [
+            $bid->formName() => [
+                'status' => Bid::STATUS_NEW,
+            ],
+            'employee_id' => false,
+        ]);
+
+//        die(print_r($params, true));
+
+        return array_map(function($bidArr){
+            return new \api\response\BidResponse($bidArr);
+        }, \common\services\BidService::searchFromApi($params));
+
+        //return \common\services\BidService::searchFromApi($params);
+
     }
 }

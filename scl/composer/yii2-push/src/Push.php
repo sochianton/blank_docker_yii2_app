@@ -72,7 +72,7 @@ final class Push
     public function __construct(
         PushRepoInterface $pushRepo,
         string $apiKey,
-        string $errorCategory = 'FCM PushSender',
+        string $errorCategory =  'FCM PushSender',
         int $pushLimit = 1000
     ) {
         $this->apiKey = $apiKey;

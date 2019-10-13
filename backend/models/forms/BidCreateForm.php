@@ -2,6 +2,7 @@
 
 namespace backend\models\forms;
 
+use common\ar\User;
 use common\dto\BidDto;
 use common\models\Bid;
 use common\models\BidAttachment;
@@ -10,6 +11,7 @@ use common\models\Employee;
 use common\models\Work;
 use Yii;
 use yii\base\Model;
+use yii\db\Query;
 use yii\web\UploadedFile;
 
 /**
@@ -85,13 +87,15 @@ class BidCreateForm extends Model
             [
                 ['customerId'],
                 'exist',
-                'targetClass' => Customer::class,
+                'targetClass' => User::class,
+                'filter' => ['type' => User::TYPE_CUSTOMER],
                 'targetAttribute' => 'id'
             ],
             [
                 ['employeeId'],
                 'exist',
-                'targetClass' => Employee::class,
+                'targetClass' => User::class,
+                'filter' => ['type' => User::TYPE_EMPLOYEE],
                 'targetAttribute' => 'id'
             ],
             [['price'], 'integer', 'min' => 1, 'max' => 2147483647],
@@ -99,7 +103,7 @@ class BidCreateForm extends Model
             [['name', 'object'], 'string', 'max' => 100],
             [['customerComment', 'employeeComment'], 'string', 'max' => 500],
             ['status', 'in', 'range' => array_keys(Bid::STATUSES)],
-            [['completeAt'], 'datetime', 'format' => 'php:Y-m-d H:i:s', 'timestampAttribute' => 'completeAt'],
+            [['completeAt'], 'datetime', 'format' => 'php:Y-m-d H:i:s'],
             [['id', 'price', 'customerId', 'employeeId', 'status'], 'integer'],
             ['works', 'integer'],
             [
@@ -183,9 +187,9 @@ class BidCreateForm extends Model
             (string)$this->object,
             $this->customerComment,
             $this->employeeComment,
-            (int)$this->completeAt,
-            time(),
-            time(),
+            $this->completeAt,
+            null,
+            null,
             array_filter((array)$this->works),
             (array)$this->customerPhotos,
             (array)$this->files,

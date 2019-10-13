@@ -49,10 +49,11 @@ class ProfileEditRequest extends Request
                     'name',
                     'secondName',
                     'lastName',
+                    'phone',
                 ],
                 'required'
             ],
-            [['email', 'name', 'secondName', 'lastName'], 'string'],
+            [['email', 'name', 'secondName', 'lastName', 'phone'], 'string'],
             ['email', 'email']
         ];
     }

@@ -51,7 +51,7 @@ return [
             ],
         ],
         'user' => [
-            'identityClass' => 'common\models\User',
+            'identityClass' => \common\ar\User::class,
             'enableAutoLogin' => false,
             'identityCookie' => false,
             'enableSession' => false,
@@ -123,6 +123,7 @@ return [
                         'GET bid' => 'bid/index',
                         'GET bid/<bidId:[\d\-]+>' => 'bid/view',
                         'GET bid/search' => 'bid/search',
+                        'GET bid/search-all-open' => 'bid/search-all-open',
                         'PUT bid/apply/<bidId:[\d\-]+>' => 'bid/apply',
                         'PUT bid/done/<bidId:[\d\-]+>' => 'bid/done',
                         'GET category' => 'category/index',

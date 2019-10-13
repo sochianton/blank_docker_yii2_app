@@ -16,7 +16,7 @@ class PushRepository implements PushRepoInterface
      * @param int $usersType
      * @return array
      */
-    public function getPushTokenListById(array $uidList, int $usersType = Push::TYPE_CUSTOMER): array
+    public function getPushTokenListById(array $uidList, int $usersType = Push::TYPE_CUSTOMER ): array
     {
         return Push::find()
             ->select('token')

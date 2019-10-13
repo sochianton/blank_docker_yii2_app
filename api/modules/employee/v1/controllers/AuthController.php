@@ -88,6 +88,8 @@ class AuthController extends RestController
     {
         $request = new LoginRequest($this->input);
 
+        //\Yii::info('<pre>'.print_r($this->input, true).'</pre>');
+
         if (!$request->validate()) {
             return $request;
         }

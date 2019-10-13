@@ -56,7 +56,7 @@ class WorkRepository
      * @return Work
      * @throws Throwable
      */
-    public function insert(Work $work, bool $runValidation = true): Work
+    public function insert(Work $work, bool $runValidation=true): Work
     {
         if (!$work->insert($runValidation)) {
             throw new \Exception(Yii::t('errors', 'Cant create work'));

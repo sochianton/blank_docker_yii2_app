@@ -53,14 +53,28 @@ class TransactionSearch extends Model
             [['dateStart', 'dateEnd', 'customer', 'employee'], 'string'],
             [['bidId', 'price', 'commission'], 'integer'],
             [['customer', 'employee', 'price', 'commission', 'dateStart', 'dateEnd'], 'default', 'value' => null],
-            [['dateStart'], 'datetime', 'format' => 'php:Y-m-d H:i:s', 'timestampAttribute' => 'dateStart'],
-            [['dateEnd'], 'datetime', 'format' => 'php:Y-m-d H:i:s', 'timestampAttribute' => 'dateEnd'],
+            [['dateStart'], 'datetime', 'format' => 'php:Y-m-d H:i:s'],
+            [['dateEnd'], 'datetime', 'format' => 'php:Y-m-xd H:i:s'],
         ];
     }
 
+
     private function validatePeriod()
     {
-        if ($this->dateEnd && $this->dateStart && ($this->dateEnd - $this->dateStart) > TransactionService::MONTH_UNIX) {
+
+        try{
+            $start = new \DateTime($this->dateStart);
+            $end = new \DateTime($this->dateEnd);
+        }
+        catch (\Exception $e){
+            $start = new \DateTime();
+            $end = new \DateTime();
+        }
+
+        $period = $start->diff($end);
+
+
+        if ($this->dateEnd && $this->dateStart && $period->days > TransactionService::DAYS ) {
             $this->addError('dateEnd',
                 Yii::t('errors', 'Select period less than one month. For large periods use export.'));
             return false;
@@ -105,7 +119,7 @@ class TransactionSearch extends Model
         $dataProvider = new ArrayDataProvider([
             'allModels' => [],
             'pagination' => [
-                'pageSize' => 10,
+                'pageSize' => 30,
             ],
         ]);
 

@@ -35,7 +35,8 @@ class WorkCreateForm extends Model
             [['name', 'commission', 'qualifications'], 'required'],
             [['price'], 'default', 'value' => 0],
             ['name', 'string', 'max' => 100],
-            [['price', 'commission', 'qualifications'], 'integer'],
+            [['commission', 'qualifications'], 'integer'],
+            [['price'], 'string'],
             [
                 'qualifications',
                 'exist',

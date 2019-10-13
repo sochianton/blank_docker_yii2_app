@@ -3,6 +3,7 @@
 namespace api\modules\employee\v1\controllers;
 
 use api\modules\customer\v1\response\CategoryListResponse;
+use common\ar\Qualification;
 use common\service\QualificationService;
 use OpenApi\Annotations as OA;
 use scl\yii\tools\controllers\RestController;
@@ -46,16 +47,18 @@ class CategoryController extends RestController
      *     @OA\Response(
      *          response="200",
      *          description="ok",
-     *          @OA\JsonContent(ref="#/components/schemas/CustomerCategoryListResponse"),
+     *          @OA\JsonContent(ref="#/components/schemas/CategoryListResponse"),
      *     )
      * )
      *
-     * @return CategoryListResponse
+     * @return \api\response\CategoryListResponse
      */
     public function actionIndex()
     {
-        $categories = $this->qualificationService->getList();
+        $categories = \common\services\QualificationService::getList();
 
-        return new CategoryListResponse($categories);
+        return new \api\response\CategoryListResponse(array_map(function(Qualification $model){
+            return \common\services\QualificationService::getDto($model);
+        }, $categories));
     }
 }

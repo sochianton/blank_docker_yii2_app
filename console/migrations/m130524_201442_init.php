@@ -94,6 +94,8 @@ class m130524_201442_init extends Migration
             'created_at' => new Expression('NOW()'),
             'updated_at' => new Expression('NOW()'),
         ]);
+
+        //$this->addForeignKey()
     }
 
     public function down()

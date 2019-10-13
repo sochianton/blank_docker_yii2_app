@@ -11,11 +11,13 @@ use api\modules\customer\v1\response\ProfileResponse;
 use api\modules\customer\v1\response\TransactionListResponse;
 use common\service\CustomerService;
 use common\service\TransactionService;
+use common\services\UserService;
 use scl\tools\rest\exceptions\SafeException;
 use scl\yii\tools\controllers\RestController;
 use Yii;
 use yii\filters\auth\HttpBearerAuth;
 use yii\web\BadRequestHttpException;
+use yii\web\NotFoundHttpException;
 
 /**
  * Class ProfileController
@@ -73,14 +75,14 @@ class ProfileController extends RestController
      *     @OA\Response(
      *          response="200",
      *          description="ok",
-     *          @OA\JsonContent(ref="#/components/schemas/CustomerProfileResponse"),
+     *          @OA\JsonContent(ref="#/components/schemas/ProfileResponse"),
      *     ),
      *     @OA\Response(response="422", description="Validation failed"),
      *     @OA\Response(response="404", description="Customer not found"),
      * )
      *
-     * @return ProfileViewRequest|ProfileResponse
-     * @throws SafeException
+     * @return ProfileViewRequest|\api\response\ProfileResponse
+     * @throws SafeException|NotFoundHttpException
      */
     public function actionView()
     {
@@ -91,12 +93,18 @@ class ProfileController extends RestController
             return $request;
         }
 
-        $profileDto = $this->customerService->getProfile($request->getCustomerId());
+        $profileDto = UserService::getProfile($customerId);
         if ($profileDto === null) {
-            throw new SafeException(404, Yii::t('app', 'Customer not found'));
+            throw new SafeException(404, Yii::t('app', 'Employee not found'));
         }
+        return new \api\response\ProfileResponse($profileDto);
 
-        return new ProfileResponse($profileDto);
+//        $profileDto = $this->customerService->getProfile($request->getCustomerId());
+//        if ($profileDto === null) {
+//            throw new SafeException(404, Yii::t('app', 'Customer not found'));
+//        }
+//
+//        return new ProfileResponse($profileDto);
     }
 
     /**
@@ -109,14 +117,14 @@ class ProfileController extends RestController
      *     @OA\Response(
      *          response="200",
      *          description="ok",
-     *          @OA\JsonContent(ref="#/components/schemas/CustomerProfileResponse"),
+     *          @OA\JsonContent(ref="#/components/schemas/ProfileResponse"),
      *     ),
      *     @OA\Response(response="422", description="Validation failed"),
      *     @OA\Response(response="500", description="Update failed"),
      *     @OA\Response(response="404", description="Customer not found"),
      * )
      *
-     * @return ProfileEditRequest|ProfileResponse
+     * @return ProfileEditRequest|\api\response\ProfileResponse
      * @throws SafeException
      * @throws \Throwable
      */
@@ -130,7 +138,8 @@ class ProfileController extends RestController
         }
 
         try {
-            $profileDto = $this->customerService->updateProfile($customerId, $request);
+            $profileDto = UserService::updateProfile($customerId, $request->attributes);
+            //$profileDto = $this->customerService->updateProfile($customerId, $request);
         } catch (\Exception $exception) {
             throw new SafeException(500, Yii::t('app', 'Update failed'));
         }
@@ -138,7 +147,8 @@ class ProfileController extends RestController
             throw new SafeException(404, Yii::t('app', 'Customer not found'));
         }
 
-        return new ProfileResponse($profileDto);
+        return new \api\response\ProfileResponse($profileDto);
+        //return new ProfileResponse($profileDto);
     }
 
     /**
@@ -158,9 +168,9 @@ class ProfileController extends RestController
      *     @OA\Response(response="404", description="Customer not found"),
      * )
      *
-     * @return ProfileImageUploadRequest|ProfileResponse
+     * @return ProfileImageUploadRequest|\api\response\ProfileResponse
      * @throws SafeException
-     * @throws BadRequestHttpException
+     * @throws BadRequestHttpException|NotFoundHttpException
      */
     public function actionUploadImage()
     {
@@ -170,9 +180,11 @@ class ProfileController extends RestController
             return $request;
         }
 
-        $profileDto = $this->customerService->uploadImage($request);
+        $profileDto = UserService::uploadImage($request->photo);
+        return new \api\response\ProfileResponse($profileDto);
 
-        return new ProfileResponse($profileDto);
+//        $profileDto = $this->customerService->uploadImage($request);
+//        return new ProfileResponse($profileDto);
     }
 
     /**
@@ -190,12 +202,17 @@ class ProfileController extends RestController
      * )
      *
      * @return TransactionListResponse
+     * @throws  \Throwable
      */
     public function actionTransactions()
     {
         $customerId = Yii::$app->user->getId();
-        $startDate = time() - TransactionService::MONTH_UNIX;
-        $endDate = time();
+//        $startDate = time() - TransactionService::MONTH_UNIX;
+//        $endDate = time();
+
+        $date = new \DateTime();
+        $endDate = $date->format('Y-m-d H:i:s');
+        $startDate = $date->modify('-1 month')->format('Y-m-d H:i:s');
 
         $transactions = $this->transactionService->getList($startDate, $endDate, $customerId);
 
@@ -217,8 +234,8 @@ class ProfileController extends RestController
      *     @OA\Response(response="500", description="Update tokens list failed"),
      * )
      *
-     * @return ProfileAddFcmTokenRequest|ProfileResponse
-     * @throws SafeException
+     * @return ProfileAddFcmTokenRequest|\api\response\ProfileResponse
+     * @throws SafeException|NotFoundHttpException
      */
     public function actionAddFcmToken()
     {
@@ -229,11 +246,17 @@ class ProfileController extends RestController
 
         $customerId = Yii::$app->user->getId();
 
-        if ($profileDto = $this->customerService->addFcmToken($customerId, $request->getToken())) {
-            return new ProfileResponse($profileDto);
+        if ($profileDto = UserService::addFcmToken($customerId, $request->getToken())) {
+            return new \api\response\ProfileResponse($profileDto);
         } else {
             throw new SafeException(500, Yii::t('app', 'Update tokens list failed'));
         }
+
+//        if ($profileDto = $this->customerService->addFcmToken($customerId, $request->getToken())) {
+//            return new ProfileResponse($profileDto);
+//        } else {
+//            throw new SafeException(500, Yii::t('app', 'Update tokens list failed'));
+//        }
     }
 
 
@@ -258,8 +281,8 @@ class ProfileController extends RestController
      * )
      *
      * @param string $token
-     * @return ProfileAddFcmTokenRequest|ProfileResponse
-     * @throws SafeException
+     * @return ProfileAddFcmTokenRequest|\api\response\ProfileResponse
+     * @throws SafeException|NotFoundHttpException
      */
     public function actionRemoveFcmToken(string $token)
     {
@@ -270,11 +293,17 @@ class ProfileController extends RestController
 
         $customerId = Yii::$app->user->getId();
 
-        if ($profileDto = $this->customerService->removeFcmToken($customerId, $request->getToken())) {
-            return new ProfileResponse($profileDto);
+        if ($profileDto = UserService::removeFcmToken($customerId, $request->getToken())) {
+            return new \api\response\ProfileResponse($profileDto);
         } else {
             throw new SafeException(500, Yii::t('app', 'Update tokens list failed'));
         }
+
+//        if ($profileDto = $this->customerService->removeFcmToken($customerId, $request->getToken())) {
+//            return new ProfileResponse($profileDto);
+//        } else {
+//            throw new SafeException(500, Yii::t('app', 'Update tokens list failed'));
+//        }
     }
 
     /**
@@ -291,17 +320,23 @@ class ProfileController extends RestController
      *     @OA\Response(response="500", description="Update tokens list failed"),
      * )
      *
-     * @return ProfileResponse
-     * @throws SafeException
+     * @return \api\response\ProfileResponse
+     * @throws SafeException|NotFoundHttpException
      */
     public function actionRemoveAllFcmTokens()
     {
         $customerId = Yii::$app->user->getId();
 
-        if ($profileDto = $this->customerService->removeAllFcmTokens($customerId)) {
-            return new ProfileResponse($profileDto);
+        if ($profileDto = UserService::removeAllFcmTokens($customerId)) {
+            return new \api\response\ProfileResponse($profileDto);
         } else {
             throw new SafeException(500, Yii::t('app', 'Update tokens list failed'));
         }
+
+//        if ($profileDto = $this->customerService->removeAllFcmTokens($customerId)) {
+//            return new ProfileResponse($profileDto);
+//        } else {
+//            throw new SafeException(500, Yii::t('app', 'Update tokens list failed'));
+//        }
     }
 }

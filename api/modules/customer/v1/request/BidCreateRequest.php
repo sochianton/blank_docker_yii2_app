@@ -22,7 +22,7 @@ class BidCreateRequest extends Request
      */
     public $name;
     /**
-     * @var int
+     * @var float
      * @OA\Property(type="integer")
      */
     public $price;

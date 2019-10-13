@@ -9,7 +9,10 @@ services:
         max-size: "20m"
         max-file: "5"
     volumes:
-      - nginx-data:/letsencrypt
+#      - nginx-data:/letsencrypt
+      - /app/letsencrypt:/letsencrypt
+    labels:
+      - domain=i-as.ru #  на всякий случай. Пробовал играть с acme.sh
     links:
       - web
   web:

@@ -3,8 +3,6 @@
 namespace api\modules\customer\v1\controllers;
 
 use api\modules\customer\v1\request\WorkListRequest;
-use api\modules\customer\v1\response\WorkListResponse;
-use common\dto\WorkDto;
 use common\service\WorkService;
 use scl\yii\tools\controllers\RestController;
 use Yii;
@@ -64,11 +62,12 @@ class WorkController extends RestController
      *     @OA\Response(
      *          response="200",
      *          description="ok",
-     *          @OA\JsonContent(ref="#/components/schemas/WorkListResponse"),
+     *          @OA\JsonContent(ref="#/components/schemas/WorkListResponse2"),
      *     )
      * )
      *
-     * @return WorkListRequest|WorkListResponse
+     * @return WorkListRequest|\api\response\WorkListResponse
+     * @throws \Exception
      */
     public function actionIndex()
     {
@@ -76,9 +75,16 @@ class WorkController extends RestController
         if (!$request->validate()) {
             return $request;
         }
-        /** @var WorkDto[] $works */
-        $works = $this->workService->getAll($request->getCategory());
 
-        return new WorkListResponse($works);
+        $works = \common\services\WorkService::getAllFromApi($request->getCategory());
+        return new \api\response\WorkListResponse($works);
+//        return ['works' => $works];
+//
+//
+//        /** @var WorkDto[] $works */
+//        $works = $this->workService->getAll($request->getCategory());
+//        return new WorkListResponse($works);
+
+
     }
 }

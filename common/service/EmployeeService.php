@@ -119,7 +119,7 @@ class EmployeeService
     public function getList(): array
     {
         $employees = $this->employeeRepository->getAllList();
-        return ArrayHelper::map($employees, 'id', function (Employee $model) {
+        return ArrayHelper::map($employees, 'id', function ( $model) {
             return $model->getFullName();
         });
     }

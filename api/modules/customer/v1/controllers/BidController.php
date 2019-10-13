@@ -5,13 +5,13 @@ namespace api\modules\customer\v1\controllers;
 use api\modules\customer\v1\request\BidApproveRequest;
 use api\modules\customer\v1\request\BidCreateRequest;
 use api\modules\customer\v1\request\BidSearchRequest;
-use api\modules\customer\v1\response\BidListResponse;
-use api\modules\customer\v1\response\BidResponse;
+use common\ar\Bid;
 use common\service\BidService;
 use scl\yii\tools\controllers\RestController;
-use OpenApi\Annotations as OA;
 use Yii;
+use yii\base\InvalidConfigException;
 use yii\base\Module;
+use yii\db\Exception;
 use yii\filters\auth\HttpBearerAuth;
 use yii\web\NotFoundHttpException;
 use yii\web\ServerErrorHttpException;
@@ -72,13 +72,14 @@ class BidController extends RestController
      *     @OA\Response(
      *          response="200",
      *          description="ok",
-     *          @OA\JsonContent(ref="#/components/schemas/CustomerBidListResponse"),
+     *          @OA\JsonContent(ref="#/components/schemas/BidListResponse"),
      *     ),
      *     @OA\Response(response="404", description="Bid not found"),
      *     @OA\Response(response="422", description="Validation failed")
      * )
      *
-     * @return BidListResponse
+     * @return \api\response\BidListResponse
+     * @throws InvalidConfigException
      */
     public function actionIndex()
     {
@@ -86,9 +87,12 @@ class BidController extends RestController
         $isArchive = ($isArchive === 'true') ? true : false;
 
         $userId = Yii::$app->user->getId();
-        $bids = $this->bidService->getListCustomer($userId, $isArchive);
+        $bids = \common\services\BidService::getListForCustomer($userId, $isArchive);
 
-        return new BidListResponse($bids);
+        return new \api\response\BidListResponse($bids);
+
+//        $bids = $this->bidService->getListCustomer($userId, $isArchive);
+//        return new BidListResponse($bids);
     }
 
     /**
@@ -106,21 +110,23 @@ class BidController extends RestController
      *     @OA\Response(
      *          response="200",
      *          description="ok",
-     *          @OA\JsonContent(ref="#/components/schemas/CustomerBidResponse"),
+     *          @OA\JsonContent(ref="#/components/schemas/BidResponse"),
      *     ),
      *     @OA\Response(response="404", description="Bid not found"),
      *     @OA\Response(response="422", description="Validation failed"),
      * )
      * @param int $bidId
-     * @return BidResponse
+     * @return \api\response\BidResponse
      * @throws NotFoundHttpException
      */
     public function actionView(int $bidId)
     {
         $userId = Yii::$app->user->getId();
-        $bidDto = $this->bidService->getCustomer($bidId, $userId);
+        $bid = \common\services\BidService::getForCustomer($bidId, $userId);
+        return new \api\response\BidResponse(\common\services\BidService::getDto($bid));
 
-        return new BidResponse($bidDto);
+//        $bidDto = $this->bidService->getCustomer($bidId, $userId);
+//        return new BidResponse($bidDto);
     }
 
     /**
@@ -144,13 +150,14 @@ class BidController extends RestController
      *     @OA\Response(
      *          response="200",
      *          description="ok",
-     *          @OA\JsonContent(ref="#/components/schemas/CustomerBidListResponse"),
+     *          @OA\JsonContent(ref="#/components/schemas/BidListResponse"),
      *     ),
      *     @OA\Response(response="404", description="Bid not found"),
      *     @OA\Response(response="422", description="Validation failed"),
      * )
      *
-     * @return BidSearchRequest|BidListResponse
+     * @return BidSearchRequest|\api\response\BidListResponse
+     * @throws InvalidConfigException
      */
     public function actionSearch()
     {
@@ -159,9 +166,12 @@ class BidController extends RestController
             return $request;
         }
         $userId = Yii::$app->user->getId();
-        $bids = $this->bidService->searchCustomer($userId, $request->getTerm(), $request->getStatus());
 
-        return new BidListResponse($bids);
+        $bids = \common\services\BidService::searchForCustomer($userId, $request->getTerm(), $request->getStatus());
+        return new \api\response\BidListResponse($bids);
+
+//        $bids = $this->bidService->searchCustomer($userId, $request->getTerm(), $request->getStatus());
+//        return new BidListResponse($bids);
     }
 
     /**
@@ -174,14 +184,14 @@ class BidController extends RestController
      *     @OA\Response(
      *          response="200",
      *          description="ok",
-     *          @OA\JsonContent(ref="#/components/schemas/CustomerBidResponse"),
+     *          @OA\JsonContent(ref="#/components/schemas/BidResponse"),
      *     ),
      *     @OA\Response(response="404", description="Bid not found"),
      *     @OA\Response(response="422", description="Validation failed"),
      *     @OA\Response(response="500", description="Create failed"),
      * )
      *
-     * @return BidCreateRequest|BidResponse
+     * @return BidCreateRequest|\api\response\BidResponse
      * @throws \Throwable
      * @throws ServerErrorHttpException
      */
@@ -192,9 +202,25 @@ class BidController extends RestController
             return $request;
         }
 
-        $bidDto = $this->bidService->create($request->getDto());
+        $bid = new Bid([
+            'name' => $request->name,
+            'customer_id' => Yii::$app->user->getId(),
+            'status' => Bid::STATUS_NEW,
+            'price' => $request->price,
+            'object' => $request->object,
+            'customer_comment' => $request->comment,
+            'complete_at' => date('Y-m-d H:i:s', $request->completeAt),
 
-        return new BidResponse($bidDto);
+            'works' =>$request->works,
+            'customerPhotos' =>$request->photos,
+            'files' =>$request->files,
+        ]);
+
+//        Yii::warning(print_r($bid->customerPhotos, true));
+//        throw new Exception('TEST3');
+
+        $new_bid = \common\services\BidService::insert($bid);
+        return new \api\response\BidResponse(\common\services\BidService::getDto($new_bid));
     }
 
     /**
@@ -212,23 +238,23 @@ class BidController extends RestController
      *     @OA\Response(
      *          response="200",
      *          description="ok",
-     *          @OA\JsonContent(ref="#/components/schemas/CustomerBidResponse"),
+     *          @OA\JsonContent(ref="#/components/schemas/BidResponse"),
      *     ),
      *     @OA\Response(response="404", description="Bid not found"),
      *     @OA\Response(response="422", description="Validation failed"),
      * )
      *
      * @param int $bidId
-     * @return BidResponse
+     * @return \api\response\BidResponse
      * @throws NotFoundHttpException
      * @throws UnprocessableEntityHttpException
      */
     public function actionCancel(int $bidId)
     {
         $userId = Yii::$app->user->getId();
-        $bidDto = $this->bidService->cancel($bidId, $userId);
+        $bid = \common\services\BidService::cancel($bidId, $userId);
 
-        return new BidResponse($bidDto);
+        return new \api\response\BidResponse(\common\services\BidService::getDto($bid));
     }
 
     /**
@@ -247,14 +273,14 @@ class BidController extends RestController
      *     @OA\Response(
      *          response="200",
      *          description="ok",
-     *          @OA\JsonContent(ref="#/components/schemas/CustomerBidResponse"),
+     *          @OA\JsonContent(ref="#/components/schemas/BidResponse"),
      *     ),
      *     @OA\Response(response="404", description="Bid not found"),
      *     @OA\Response(response="422", description="Validation failed"),
      * )
      *
      * @param int $bidId
-     * @return BidApproveRequest|BidResponse
+     * @return BidApproveRequest|\api\response\BidResponse
      * @throws NotFoundHttpException
      * @throws UnprocessableEntityHttpException
      */
@@ -266,8 +292,10 @@ class BidController extends RestController
         }
 
         $userId = Yii::$app->user->getId();
-        $bidDto = $this->bidService->approve($bidId, $userId, $request->isApprove());
+        $bid = \common\services\BidService::approve($bidId, $userId, $request->isApprove());
+//        $bidDto = $this->bidService->approve($bidId, $userId, $request->isApprove());
 
-        return new BidResponse($bidDto);
+        return new \api\response\BidResponse(\common\services\BidService::getDto($bid));
+//        return new BidResponse($bidDto);
     }
 }

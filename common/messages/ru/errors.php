@@ -11,4 +11,11 @@ return [
     'Can\'t update bid.' => 'Заявка не обновлена.',
     'Incorrect username or password.' => 'Некорректное имя пользователя или пароль.',
     'File type not recognized.' => 'Тип файла не распознан.',
+    'Work already has employee' => 'У заявки уже есть исполнитель',
+    'Record doesn\'t find' => 'Запись не найдена',
+    'Need to define ID' => 'Не задан ID',
+    'Need to define model property' => 'Необходимо задать Модель',
+    'Operation successfully done' => 'Операция успешно выполнена',
+    'Can\'t perform operation' => 'Не удается выполнить операцию',
+    'Can\'t delete record from db' => 'Не удается удалить запись',
 ];

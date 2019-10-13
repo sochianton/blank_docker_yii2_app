@@ -15,9 +15,9 @@ class m190507_034550_create_qualification_table extends Migration
         $this->createTable('{{%qualification}}', [
             'id' => $this->primaryKey(),
             'name' => $this->string(100)->notNull(),
-            'deleted_at' => $this->integer()->null(),
-            'created_at' => $this->integer()->notNull(),
-            'updated_at' => $this->integer()->notNull(),
+            'deleted_at' => $this->timestamp()->null(),
+            'created_at' => $this->timestamp()->defaultExpression('NOW()'),
+            'updated_at' => $this->timestamp()->defaultExpression('NOW()'),
         ]);
     }
 

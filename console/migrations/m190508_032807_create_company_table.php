@@ -19,8 +19,8 @@ class m190508_032807_create_company_table extends Migration
             'name' => $this->string(100),
             'address' => $this->string(100),
             'deleted_at' => $this->timestamp()->null(),
-            'created_at' => $this->timestamp()->null(),
-            'updated_at' => $this->timestamp()->null(),
+            'created_at' => $this->timestamp()->defaultExpression('NOW()'),
+            'updated_at' => $this->timestamp()->defaultExpression('NOW()'),
         ]);
 
         $this->addColumn('{{%customer}}', 'company_id', $this->integer()->unsigned()->defaultValue(null));

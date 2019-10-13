@@ -57,7 +57,6 @@ class QualificationService
         return $qualification;
     }
 
-
     /**
      * @param bool $withDeleted
      * @param array $selected

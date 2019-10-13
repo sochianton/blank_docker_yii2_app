@@ -7,13 +7,14 @@ use api\modules\employee\v1\request\ProfileAddFcmTokenRequest;
 use api\modules\employee\v1\request\ProfileEditRequest;
 use api\modules\employee\v1\request\ProfileImageUploadRequest;
 use api\modules\employee\v1\request\ProfileViewRequest;
-use api\modules\employee\v1\response\ProfileResponse;
 use common\service\EmployeeService;
+use common\services\UserService;
 use scl\tools\rest\exceptions\SafeException;
 use scl\yii\tools\controllers\RestController;
 use Yii;
 use yii\filters\auth\HttpBearerAuth;
 use yii\web\BadRequestHttpException;
+use yii\web\NotFoundHttpException;
 
 /**
  * Class ProfileController
@@ -64,13 +65,13 @@ class ProfileController extends RestController
      *     @OA\Response(
      *          response="200",
      *          description="ok",
-     *          @OA\JsonContent(ref="#/components/schemas/EmployeeProfileResponse"),
+     *          @OA\JsonContent(ref="#/components/schemas/ProfileResponse"),
      *     ),
      *     @OA\Response(response="404", description="Employee not found"),
      * )
      *
-     * @return ProfileViewRequest|ProfileResponse
-     * @throws SafeException
+     * @return ProfileViewRequest|\api\response\ProfileResponse
+     * @throws SafeException|NotFoundHttpException
      */
     public function actionView()
     {
@@ -81,12 +82,18 @@ class ProfileController extends RestController
             return $request;
         }
 
-        $profileDto = $this->employeeService->getProfile($request->getEmployeeId());
+        $profileDto = UserService::getProfile($employeeId);
         if ($profileDto === null) {
             throw new SafeException(404, Yii::t('app', 'Employee not found'));
         }
+        return new \api\response\ProfileResponse($profileDto);
 
-        return new ProfileResponse($profileDto);
+//        $profileDto = $this->employeeService->getProfile($request->getEmployeeId());
+//        if ($profileDto === null) {
+//            throw new SafeException(404, Yii::t('app', 'Employee not found'));
+//        }
+//
+//        return new ProfileResponse($profileDto);
     }
 
     /**
@@ -99,14 +106,14 @@ class ProfileController extends RestController
      *     @OA\Response(
      *          response="200",
      *          description="ok",
-     *          @OA\JsonContent(ref="#/components/schemas/EmployeeProfileResponse"),
+     *          @OA\JsonContent(ref="#/components/schemas/ProfileResponse"),
      *     ),
      *     @OA\Response(response="422", description="Validation failed"),
      *     @OA\Response(response="500", description="Update failed"),
      *     @OA\Response(response="404", description="Employee not found"),
      * )
      *
-     * @return ProfileEditRequest|ProfileResponse
+     * @return ProfileEditRequest|\api\response\ProfileResponse
      * @throws SafeException
      * @throws \Throwable
      */
@@ -120,7 +127,8 @@ class ProfileController extends RestController
         }
 
         try {
-            $profileDto = $this->employeeService->updateProfile($employeeId, $request);
+            $profileDto = UserService::updateProfile($employeeId, $request->attributes);
+            //$profileDto = $this->employeeService->updateProfile($employeeId, $request);
         } catch (\Exception $exception) {
             throw new SafeException(500, Yii::t('app', 'Update failed'));
         }
@@ -128,7 +136,8 @@ class ProfileController extends RestController
             throw new SafeException(404, Yii::t('app', 'Employee not found'));
         }
 
-        return new ProfileResponse($profileDto);
+        return new \api\response\ProfileResponse($profileDto);
+        //return new ProfileResponse($profileDto);
     }
 
     /**
@@ -148,9 +157,9 @@ class ProfileController extends RestController
      *     @OA\Response(response="404", description="Employee not found"),
      * )
      *
-     * @return ProfileImageUploadRequest|ProfileResponse
+     * @return ProfileImageUploadRequest|\api\response\ProfileResponse
      * @throws SafeException
-     * @throws BadRequestHttpException
+     * @throws BadRequestHttpException|NotFoundHttpException
      */
     public function actionUploadImage()
     {
@@ -160,11 +169,12 @@ class ProfileController extends RestController
             return $request;
         }
 
-        $profileDto = $this->employeeService->uploadImage($request);
+        $profileDto = UserService::uploadImage($request->photo);
+        return new \api\response\ProfileResponse($profileDto);
 
-        return new ProfileResponse($profileDto);
+//        $profileDto = $this->employeeService->uploadImage($request);
+//        return new ProfileRespons($profileDto);
     }
-
 
     /**
      * @OA\Post(
@@ -176,13 +186,13 @@ class ProfileController extends RestController
      *     @OA\Response(
      *          response="200",
      *          description="ok",
-     *          @OA\JsonContent(ref="#/components/schemas/EmployeeProfileResponse"),
+     *          @OA\JsonContent(ref="#/components/schemas/ProfileResponse"),
      *     ),
      *     @OA\Response(response="500", description="Update tokens list failed"),
      * )
      *
-     * @return ProfileAddFcmTokenRequest|ProfileResponse
-     * @throws SafeException
+     * @return ProfileAddFcmTokenRequest|\api\response\ProfileResponse
+     * @throws SafeException|NotFoundHttpException
      */
     public function actionAddFcmToken()
     {
@@ -193,8 +203,8 @@ class ProfileController extends RestController
 
         $employeeId = Yii::$app->user->getId();
 
-        if ($profileDto = $this->employeeService->addFcmToken($employeeId, $request->getToken())) {
-            return new ProfileResponse($profileDto);
+        if ($profileDto = UserService::addFcmToken($employeeId, $request->getToken())) {
+            return new \api\response\ProfileResponse($profileDto);
         } else {
             throw new SafeException(500, Yii::t('app', 'Update tokens list failed'));
         }
@@ -216,14 +226,14 @@ class ProfileController extends RestController
      *     @OA\Response(
      *          response="200",
      *          description="ok",
-     *          @OA\JsonContent(ref="#/components/schemas/EmployeeProfileResponse"),
+     *          @OA\JsonContent(ref="#/components/schemas/ProfileResponse"),
      *     ),
      *     @OA\Response(response="500", description="Update tokens list failed"),
      * )
      *
      * @param string $token
-     * @return ProfileAddFcmTokenRequest|ProfileResponse
-     * @throws SafeException
+     * @return ProfileAddFcmTokenRequest|\api\response\ProfileResponse
+     * @throws SafeException|NotFoundHttpException
      */
     public function actionRemoveFcmToken(string $token)
     {
@@ -234,8 +244,8 @@ class ProfileController extends RestController
 
         $employeeId = Yii::$app->user->getId();
 
-        if ($profileDto = $this->employeeService->removeFcmToken($employeeId, $request->getToken())) {
-            return new ProfileResponse($profileDto);
+        if ($profileDto = UserService::removeFcmToken($employeeId, $request->getToken())) {
+            return new \api\response\ProfileResponse($profileDto);
         } else {
             throw new SafeException(500, Yii::t('app', 'Update tokens list failed'));
         }
@@ -251,20 +261,20 @@ class ProfileController extends RestController
      *     @OA\Response(
      *          response="200",
      *          description="ok",
-     *          @OA\JsonContent(ref="#/components/schemas/EmployeeProfileResponse"),
+     *          @OA\JsonContent(ref="#/components/schemas/ProfileResponse"),
      *     ),
      *     @OA\Response(response="500", description="Update tokens list failed"),
      * )
      *
-     * @return ProfileResponse
-     * @throws SafeException
+     * @return \api\response\ProfileResponse
+     * @throws SafeException|NotFoundHttpException
      */
     public function actionRemoveAllFcmTokens()
     {
         $employeeId = Yii::$app->user->getId();
 
-        if ($profileDto = $this->employeeService->removeAllFcmTokens($employeeId)) {
-            return new ProfileResponse($profileDto);
+        if ($profileDto = UserService::removeAllFcmTokens($employeeId)) {
+            return new \api\response\ProfileResponse($profileDto);
         } else {
             throw new SafeException(500, Yii::t('app', 'Update tokens list failed'));
         }

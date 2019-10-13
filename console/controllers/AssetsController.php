@@ -33,7 +33,7 @@ class AssetsController extends Controller
         Yii::setAlias('@webroot', __DIR__ . '/../../backend/web');
         Yii::setAlias('@web', '/');
 
-        \backend\assets\AppAsset::register($this->getView());
+        \backend\assets\BackendAsset::register($this->getView());
 
         echo 'Assets was created successfully.' . PHP_EOL;
         return 0;

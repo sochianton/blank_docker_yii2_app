@@ -3,7 +3,7 @@
 namespace api\modules\employee\v1\request;
 
 use api\misc\UploadedFileBase64;
-use common\models\BidAttachment;
+use common\ar\BidAttachment;
 use scl\yii\tools\Request;
 use Yii;
 use yii\web\UploadedFile;

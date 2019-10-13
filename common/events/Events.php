@@ -3,8 +3,7 @@
 namespace common\events;
 
 use common\jobs\BidDoneNotApprovedJob;
-use common\jobs\BidFindEmployeeJob;
-use common\models\Bid;
+use common\ar\Bid;
 use common\models\Push;
 use paragraph1\phpFCM\Notification;
 use scl\yii\push\job\PushUserJob;
@@ -32,10 +31,10 @@ class Events implements BootstrapInterface
      */
     public function bootstrap($app)
     {
-        Event::on(Bid::class, Bid::EVENT_BID_CREATE_CUSTOMER, [$this, 'bidCreateCustomer']);
-        Event::on(Bid::class, Bid::EVENT_BID_APPLY_EMPLOYEE, [$this, 'bidApplyEmployee']);
-        Event::on(Bid::class, Bid::EVENT_BID_REJECT_EMPLOYEE, [$this, 'bidRejectEmployee']);
-        Event::on(Bid::class, Bid::EVENT_BID_DONE_EMPLOYEE, [$this, 'bidDoneEmployee']);
+        Event::on(Bid::class, Bid::EVENT_CREATE_BID_BY_CUSTOMER, [$this, 'bidCreateCustomer']);
+        Event::on(Bid::class, Bid::EVENT_APPLY_BID_BY_EMPLOYEE, [$this, 'bidApplyEmployee']);
+        Event::on(Bid::class, Bid::EVENT_REJECT_BID_BY_EMPLOYEE, [$this, 'bidRejectEmployee']);
+        Event::on(Bid::class, Bid::EVENT_DONE_BID_BY_EMPLOYEE, [$this, 'bidDoneEmployee']);
         Event::on(Bid::class, Bid::EVENT_BID_CANCELED, [$this, 'bidCanceled']);
     }
 
@@ -48,10 +47,12 @@ class Events implements BootstrapInterface
         /** @var Bid $bid */
         $bid = $event->sender;
 
-        Yii::$app->queue->delay(self::DELAY_CHECK_REQUEST_BID)->push(Yii::createObject([
-            'class' => BidFindEmployeeJob::class,
-            'bidId' => $bid->id,
-        ]));
+        // Поскольку заявка уходит всем, то искать по очередно не нужно
+
+//        Yii::$app->queue->delay(self::DELAY_CHECK_REQUEST_BID)->push(Yii::createObject([
+//            'class' => BidFindEmployeeJob::class,
+//            'bidId' => $bid->id,
+//        ]));
     }
 
     public function bidApplyEmployee(Event $event)
@@ -81,10 +82,10 @@ class Events implements BootstrapInterface
         /** @var Bid $bid */
         $bid = $event->sender;
 
-        Yii::$app->queue->delay(self::DELAY_CHECK_REQUEST_BID)->push(Yii::createObject([
-            'class' => BidFindEmployeeJob::class,
-            'bidId' => $bid->id,
-        ]));
+//        Yii::$app->queue->delay(self::DELAY_CHECK_REQUEST_BID)->push(Yii::createObject([
+//            'class' => BidFindEmployeeJob::class,
+//            'bidId' => $bid->id,
+//        ]));
     }
 
     /**

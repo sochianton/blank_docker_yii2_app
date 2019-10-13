@@ -40,20 +40,20 @@ class TransactionDto
     /**
      * TransactionDto constructor.
      * @param int $bidId
-     * @param int $date
+     * @param string $date
      * @param string $customer
      * @param string $employee
      * @param string $object
-     * @param int $price
+     * @param float $price
      * @param int $commission
      */
     public function __construct(
         int $bidId,
-        int $date,
+        string  $date,
         string $customer,
         string $employee,
         string $object,
-        int $price,
+        $price,
         int $commission
     ) {
         $this->bidId = $bidId;
@@ -76,7 +76,7 @@ class TransactionDto
     /**
      * @return int
      */
-    public function getDate(): int
+    public function getDate(): string
     {
         return $this->date;
     }

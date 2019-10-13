@@ -3,6 +3,7 @@
 namespace common\repository;
 
 use common\models\Employee;
+use common\repositories\UserRep;
 use yii\db\Expression;
 use yii\db\StaleObjectException;
 
@@ -36,7 +37,7 @@ class EmployeeRepository
     /**
      * @param array $includedEmployeeIds
      * @param array $excludedEmployeeIds
-     * @return Employee|null
+     * @return Employee
      */
     public function getFirstAvailable(array $includedEmployeeIds, array $excludedEmployeeIds): ?Employee
     {
@@ -49,10 +50,27 @@ class EmployeeRepository
     }
 
     /**
+     * @param array $includedEmployeeIds
+     * @param array $excludedEmployeeIds
+     * @return Employee[]|null
+     */
+    public function getAllAvailable(array $includedEmployeeIds, array $excludedEmployeeIds): ?array
+    {
+        return Employee::find()
+            ->where(['id' => $includedEmployeeIds])
+            ->andFilterWhere(['NOT IN', 'id', $excludedEmployeeIds])
+            ->andWhere(['!=', 'status', Employee::STATUS_DELETED])
+            ->orderBy(new Expression('random()'))
+            ->all();
+    }
+
+    /**
      * @return array
      */
     public function getAllList(): array
     {
+
+        return UserRep::getAllEmployeeList();
         return Employee::find()
             ->all();
     }

@@ -3,7 +3,10 @@
 namespace api\modules\employee\v1\service;
 
 use api\modules\employee\v1\dto\LoginDto;
-use common\models\AuthToken;
+use common\ar\User;
+use common\ar\AuthToken;
+use common\repositories\AuthTokenRep;
+use common\repositories\UserRep;
 use common\repository\AuthTokenRepository;
 use common\repository\EmployeeRepository;
 use scl\tools\rest\exceptions\SafeException;
@@ -44,7 +47,8 @@ class AuthService
      */
     public function login(LoginDto $loginDto): string
     {
-        $employee = $this->employeeRepository->getByEmail($loginDto->email);
+        //$employee = $this->employeeRepository->getByEmail($loginDto->email);
+        $employee = UserRep::getByEmail($loginDto->email, User::TYPE_EMPLOYEE);
         if ($employee === null) {
             throw new SafeException(404, Yii::t('app', 'Emloyee not found'));
         }
@@ -53,12 +57,12 @@ class AuthService
             throw new SafeException(422, Yii::t('app', 'Invalid password'));
         }
 
-        $this->authTokenRepository->deleteAllExpired($employee->id, AuthToken::TYPE_EMPLOYEE);
+        AuthTokenRep::deleteAllExpired($employee->id, \common\ar\AuthToken::TYPE_EMPLOYEE);
 
         $authToken = AuthToken::create($employee->id, AuthToken::TYPE_EMPLOYEE);
-        if ($this->authTokenRepository->insert($authToken) === null) {
+        if (AuthTokenRep::insert($authToken) === null) {
             throw new SafeException(500,
-                Yii::t('app', 'Can`t create authentication token for unknown reason'));
+                Yii::t('app-messages', 'Can`t create authentication token for unknown reason'));
         }
 
         return $authToken->token;
@@ -73,11 +77,12 @@ class AuthService
      */
     public function logout(string $token): bool
     {
-        $authToken = $this->authTokenRepository->get($token, AuthToken::TYPE_EMPLOYEE);
+
+        $authToken = AuthTokenRep::get($token, AuthToken::TYPE_EMPLOYEE);
         if ($authToken === null) {
             throw new SafeException(401, Yii::t('app', 'You are not logged in'));
         }
 
-        return $this->authTokenRepository->delete($authToken);
+        return AuthTokenRep::delete($authToken);
     }
 }

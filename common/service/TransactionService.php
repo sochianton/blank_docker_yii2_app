@@ -19,6 +19,7 @@ use Yii;
 class TransactionService
 {
     const MONTH_UNIX = 60 * 60 * 24 * 30; // 2592000
+    const DAYS = 30; // 2592000
     /**
      * @var BidRepository
      */
@@ -71,8 +72,8 @@ class TransactionService
     }
 
     /**
-     * @param int|null $startDate
-     * @param int|null $endDate
+     * @param string|null $startDate
+     * @param string|null $endDate
      * @param int|null $customerId
      * @param string|null $customerName
      * @param string|null $employeeName
@@ -82,15 +83,18 @@ class TransactionService
      * @return array
      */
     public function getList(
-        ?int $startDate,
-        ?int $endDate,
+        ?string $startDate,
+        ?string $endDate,
         ?int $customerId = null,
         ?string $customerName = null,
         ?string $employeeName = null,
-        ?int $price = null,
+        $price = null,
         ?int $commission = null,
         ?int $bidId = null
     ): array {
+
+
+
         $bids = [];
         if ($bidId) {
             $bid = $this->bidRepository->get($bidId);
@@ -100,6 +104,7 @@ class TransactionService
         } else {
             $bids = $this->bidRepository->getListAll($startDate, $endDate, $customerId);
         }
+
         $transactions = array_map(function (Bid $bid) {
             $customerName = '';
             $employeeName = '';
@@ -122,23 +127,34 @@ class TransactionService
                 $work = $this->workRepository->get($workId);
                 $commission = $work->commission ?? 0;
             }
+
+
             return new TransactionDto(
                 $bid->id,
                 $bid->complete_at,
                 $customerName,
                 $employeeName,
                 $bid->object,
-                $bid->price,
+                (float)$bid->price,
                 $commission
             );
+
+
+
         }, $bids);
+
+        //die(print_r($transactions, true));
 
         return array_filter($transactions,
             function (TransactionDto $transaction) use ($customerName, $employeeName, $price, $commission) {
+
+
                 if ($customerName !== null && mb_strpos(mb_strtolower($transaction->getCustomer()),
                         mb_strtolower($customerName)) === false) {
                     return false;
                 }
+
+
                 if ($employeeName !== null && mb_strpos(mb_strtolower($transaction->getEmployee()),
                         mb_strtolower($employeeName)) === false) {
                     return false;

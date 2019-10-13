@@ -1,17 +1,18 @@
 <?php
-
-use yii\queue\amqp_interop\Queue;
-use yii\queue\LogBehavior;
-
 return [
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm' => '@vendor/npm-asset',
     ],
     'vendorPath' => dirname(dirname(__DIR__)) . '/vendor',
-    'name' => 'euroservice',
-    'language' => 'ru',
-    'sourceLanguage' => 'en',
+    'name' => 'ИАС',
+
+    'language' => 'ru-RU',
+    'sourceLanguage' => 'en-EN',
+
+    'timeZone' => 'Europe/Moscow',
+
+
     'bootstrap' => [
         'log',
         'queue',
@@ -19,27 +20,49 @@ return [
         common\events\Events::class,
     ],
     'components' => [
+        'view' => [
+            'theme' => [
+                'pathMap' => [
+                    '@app/views' => '@app/themes/basic',
+                ],
+            ],
+        ],
         'cache' => [
-            'class' => 'yii\caching\FileCache',
+            'class' => \yii\caching\FileCache::class,
         ],
         'assetManager' => [
-            'hashCallback' => function ($path) {
-                $path = str_replace(Yii::getAlias('@root'), '', $path);
-                return substr(hash('md4', $path), 0, 8);
-            }
+            'linkAssets' => true,
+//            'fileMode' => '0755',
+//            'forceCopy' => true,
+            'appendTimestamp' => true,
+//            'hashCallback' => function ($path) {
+//                $path = str_replace(Yii::getAlias('@root'), '', $path);
+//                return substr(hash('md4', $path), 0, 8);
+//            }
+        ],
+        'urlManager' => [
+            'enablePrettyUrl' => true,
+            'showScriptName' => false,
+            'rules' => [
+
+            ],
         ],
         'queue' => [
-            'class' => Queue::class,
+            'class' => yii\queue\amqp_interop\Queue::class,
             'host' => $_ENV['RABBITMQ_HOST'],
             'port' => $_ENV['RABBITMQ_PORT'],
             'user' => $_ENV['RABBITMQ_DEFAULT_USER'],
             'password' => $_ENV['RABBITMQ_DEFAULT_PASS'],
             'queueName' => 'queue',
-            'driver' => Queue::ENQUEUE_AMQP_LIB,
-            'as log' => LogBehavior::class,
+            'driver' => yii\queue\amqp_interop\Queue::ENQUEUE_AMQP_LIB,
+            'as log' => yii\queue\LogBehavior::class,
         ],
         'notifierSMS' => [
             'class' => common\components\TwilioSMSNotifier::class,
+        ],
+        'formatter' => [
+            'defaultTimeZone'=> 'Europe/Moscow',
+            'dateFormat'=> 'short',
         ],
         'i18n' => [
             'translations' => [

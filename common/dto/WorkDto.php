@@ -41,7 +41,7 @@ final class WorkDto
     {
         $this->id = (int)($params['id'] ?? 0);
         $this->name = (string)($params['name'] ?? '');
-        $this->price = (int)($params['name'] ?? 0);
+        $this->price = ($params['price'] ?? 0);
         $this->commission = (int)($params['commission'] ?? 0);
         $this->qualificationIds = (array)($params['qualificationIds'] ?? []);
         $this->deletedAt = $params['deleted_at'] ?? null;
@@ -74,7 +74,7 @@ final class WorkDto
     /**
      * @return int
      */
-    public function getPrice(): int
+    public function getPrice(): float
     {
         return $this->price;
     }
@@ -82,7 +82,7 @@ final class WorkDto
     /**
      * @param int $price
      */
-    public function setPrice(int $price)
+    public function setPrice(float $price)
     {
         $this->price = $price;
     }

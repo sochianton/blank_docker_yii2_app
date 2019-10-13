@@ -3,7 +3,10 @@
 namespace api\modules\customer\v1\service;
 
 use api\modules\customer\v1\dto\LoginDto;
-use common\models\AuthToken;
+use common\ar\User;
+use common\ar\AuthToken;
+use common\repositories\UserRep;
+use common\repositories\AuthTokenRep;
 use common\repository\AuthTokenRepository;
 use common\repository\CustomerRepository;
 use scl\tools\rest\exceptions\SafeException;
@@ -44,7 +47,7 @@ class AuthService
      */
     public function login(LoginDto $loginDto): string
     {
-        $customer = $this->customerRepository->getByEmail($loginDto->email);
+        $customer = UserRep::getByEmail($loginDto->email, User::TYPE_CUSTOMER);
         if ($customer === null) {
             throw new SafeException(404, Yii::t('app', 'Customer not found'));
         }
@@ -53,10 +56,10 @@ class AuthService
             throw new SafeException(422, Yii::t('app', 'Invalid password'));
         }
 
-        $this->authTokenRepository->deleteAllExpired($customer->id, AuthToken::TYPE_CUSTOMER);
+        AuthTokenRep::deleteAllExpired($customer->id, AuthToken::TYPE_CUSTOMER);
 
         $authToken = AuthToken::create($customer->id, AuthToken::TYPE_CUSTOMER);
-        if ($this->authTokenRepository->insert($authToken) === null) {
+        if (AuthTokenRep::insert($authToken) === null) {
             throw new SafeException(500,
                 Yii::t('app-messages', 'Can`t create authentication token for unknown reason'));
         }
@@ -73,11 +76,11 @@ class AuthService
      */
     public function logout(string $token): bool
     {
-        $authToken = $this->authTokenRepository->get($token, AuthToken::TYPE_CUSTOMER);
+        $authToken = AuthTokenRep::get($token, AuthToken::TYPE_CUSTOMER);
         if ($authToken === null) {
             throw new SafeException(401, Yii::t('app', 'You are not logged in'));
         }
 
-        return $this->authTokenRepository->delete($authToken);
+        return AuthTokenRep::delete($authToken);
     }
 }

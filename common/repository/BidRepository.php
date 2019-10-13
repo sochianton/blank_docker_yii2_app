@@ -28,13 +28,13 @@ class BidRepository
      * @return array
      */
     public function getListAll(
-        ?int $startDate,
-        ?int $endDate,
+        ?string $startDate,
+        ?string $endDate,
         ?int $customerId = null
     ): array {
         $query = Bid::find();
 
-        if ($startDate && $endDate) {
+        if (false AND $startDate && $endDate) {
             $query->andFilterWhere([
                 'between',
                 'complete_at',

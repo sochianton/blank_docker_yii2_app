@@ -20,12 +20,12 @@ class WorkListResponse
 
     /**
      * WorkListResponse constructor.
-     * @param array $bids
+     * @param array $works
      */
-    public function __construct(array $bids)
+    public function __construct(array $works)
     {
-        $this->works = array_map(function (WorkDto $workDto) {
+        $this->works = array_map(function ( $workDto) {
             return new WorkResponse($workDto);
-        }, $bids);
+        }, $works);
     }
 }

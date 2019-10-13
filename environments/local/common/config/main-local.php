@@ -17,6 +17,9 @@ return [
             'username' => $_ENV['POSTGRES_USER'],
             'password' => $_ENV['POSTGRES_PASSWORD'],
             'charset' => 'utf8',
+            'on afterOpen' => function($event) {
+                $event->sender->createCommand("SET timezone='".Yii::$app->timeZone."';")->execute();
+            },
         ],
         'Yii2Twilio' => [
             'class' => filipajdacic\yiitwilio\YiiTwilio::class,

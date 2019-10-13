@@ -24,6 +24,7 @@ use scl\yii\push\job\PushUserJob;
 use Throwable;
 use Yii;
 use yii\db\StaleObjectException;
+use yii\helpers\ArrayHelper;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
@@ -282,7 +283,7 @@ class BidService
      * @throws ServerErrorHttpException
      * @throws Throwable
      */
-    public function create(BidDto $bidDto): BidDto
+    public function create_old(BidDto $bidDto): BidDto
     {
         if ($this->customerRepository->isBlocked($bidDto->getCustomerId())) {
             throw new ForbiddenHttpException(Yii::t('app', 'You not have permissions to create bid.'));
@@ -290,6 +291,7 @@ class BidService
 
         $workIds = $bidDto->getWorks();
         $employee = $this->getFirstAvailableEmployeeByWorks($workIds);
+
         if ($employee === null) {
             $notification = new Notification(
                 Yii::t('app', 'No matching employee found.'),
@@ -339,12 +341,96 @@ class BidService
                 $notificationEmployee
             ));
 
-        $bid->trigger(Bid::EVENT_BID_CREATE_CUSTOMER);
+        $bid->trigger(Bid::EVENT_CREATE_BID_BY_CUSTOMER);
 
         $this->uploadFiles($bid, BidAttachment::TYPE_PHOTO_CUSTOMER, $bidDto->getCustomerPhotos());
         $this->uploadFiles($bid, BidAttachment::TYPE_FILE, $bidDto->getFiles());
         $this->uploadFiles($bid, BidAttachment::TYPE_PHOTO_EMPLOYEE, $bidDto->getEmployeePhotos());
 
+
+        $customerPhotos = $this->getFiles($bid->id, BidAttachment::TYPE_PHOTO_CUSTOMER);
+        $employeePhotos = $this->getFiles($bid->id, BidAttachment::TYPE_PHOTO_EMPLOYEE);
+        $files = $this->getFiles($bid->id, BidAttachment::TYPE_FILE);
+
+        $works = $this->workRepository->getWorksByBidId($bid->id);
+        return $this->getDto($bid, $works, $customerPhotos, $files, $employeePhotos);
+    }
+
+    /**
+     * @param BidDto $bidDto
+     * @return BidDto
+     * @throws ForbiddenHttpException
+     * @throws SafeException
+     * @throws ServerErrorHttpException
+     * @throws Throwable
+     */
+    public function create(BidDto $bidDto): BidDto
+    {
+
+        if ($this->customerRepository->isBlocked($bidDto->getCustomerId())) {
+            throw new ForbiddenHttpException(Yii::t('app', 'You not have permissions to create bid.'));
+        }
+
+        $workIds = $bidDto->getWorks();
+        $employees = $this->getAllAvailableEmployeeByWorks($workIds);
+
+        if ($employees === null OR empty($employees)) {
+            $notification = new Notification(
+                Yii::t('app', 'No matching employee found.'),
+                Yii::t('app', 'No matching employee found for your bid.')
+            );
+
+            Yii::$app->queue->push(
+                new PushUserJob(
+                    [$bidDto->getCustomerId()],
+                    Push::TYPE_CUSTOMER,
+                    $notification
+                ));
+
+            throw new BadRequestHttpException(Yii::t('app', 'No matching employee found for your bid.'));
+        }
+
+        $bid = Bid::create(
+            $bidDto->getName(),
+            $bidDto->getCustomerId(),
+            null,
+            $bidDto->getStatus(),
+            $bidDto->getPrice(),
+            $bidDto->getCompleteAt(),
+            $bidDto->getObject(),
+            $bidDto->getCustomerComment(),
+            $bidDto->getEmployeeComment()
+        );
+
+        $bid = $this->bidRepository->insert($bid);
+        if ($bid === null) {
+            throw new ServerErrorHttpException(Yii::t('errors', 'Can\'t create bid for unknown reason.'));
+        }
+
+        if (!empty($workIds)) {
+            $this->bidWorkRepository->insertAll($bid->id, $workIds);
+        }
+
+        $notificationEmployee = new Notification(
+            Yii::t('app', 'An bid has been assigned to you.'),
+            Yii::t('app', 'An bid has been assigned to you.')
+        );
+
+
+
+        Yii::$app->queue->push(
+            new PushUserJob(
+                ArrayHelper::getColumn($employees, 'id'),
+                Push::TYPE_EMPLOYEE,
+                $notificationEmployee
+            )
+        );
+
+        $bid->trigger(Bid::EVENT_CREATE_BID_BY_CUSTOMER);
+
+        $this->uploadFiles($bid, BidAttachment::TYPE_PHOTO_CUSTOMER, $bidDto->getCustomerPhotos());
+        $this->uploadFiles($bid, BidAttachment::TYPE_FILE, $bidDto->getFiles());
+        $this->uploadFiles($bid, BidAttachment::TYPE_PHOTO_EMPLOYEE, $bidDto->getEmployeePhotos());
 
         $customerPhotos = $this->getFiles($bid->id, BidAttachment::TYPE_PHOTO_CUSTOMER);
         $employeePhotos = $this->getFiles($bid->id, BidAttachment::TYPE_PHOTO_EMPLOYEE);
@@ -472,6 +558,7 @@ class BidService
      * @param int $employeeId
      * @param bool $apply
      * @return BidDto
+     *
      * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      * @throws StaleObjectException
@@ -480,24 +567,50 @@ class BidService
      */
     public function apply(int $id, int $employeeId, bool $apply): BidDto
     {
+        // Пользователь заблокирован
         if ($this->employeeRepository->isBlocked($employeeId)) {
             throw new ForbiddenHttpException(Yii::t('app', 'You not have permissions to apply bid.'));
         }
 
-        $bid = $this->bidRepository->getEmployee($id, $employeeId);
+        // Находим Заявку по ID
+        $bid = $this->bidRepository->get($id);
         if ($bid === null) {
             throw new NotFoundHttpException(Yii::t('errors', 'Can\'t find bid.'));
         }
 
+        // Только НОВЫЕ заявки
         if ($bid->status !== Bid::STATUS_NEW) {
             throw new UnprocessableEntityHttpException(Yii::t('errors', 'Can\'t apply work, incompatible status.'));
         }
 
-        if ($apply) {
+        // Только НОВЫЕ заявки
+        if (!$bid->employee_id) {
+            throw new UnprocessableEntityHttpException(Yii::t('errors', 'Work already has employee'));
+        }
+
+        if($apply){
+
             $bid = $this->bidRepository->setStatus($bid, Bid::STATUS_IN_WORK);
+            $bid->employee_id = $employeeId;
+            $bid = $this->bidRepository->update($bid);
+
+            $notificationEmployee = new Notification(
+                Yii::t('app', 'An bid has been assigned to you.'),
+                Yii::t('app', 'An bid has been assigned to you.')
+            );
+
+            Yii::$app->queue->push(
+                new PushUserJob(
+                    [$bid->employee_id],
+                    Push::TYPE_EMPLOYEE,
+                    $notificationEmployee
+                )
+            );
+
             $this->employeeRejectedBidRepository->deleteAll($bid->id);
-            $bid->trigger(Bid::EVENT_BID_APPLY_EMPLOYEE);
-        } else {
+            $bid->trigger(Bid::EVENT_APPLY_BID_BY_EMPLOYEE);
+        }
+        elseif(false){
             $rejectEmployeeId = $bid->employee_id;
 
             if (!empty($rejectEmployeeId)) {
@@ -523,7 +636,7 @@ class BidService
                         $notificationEmployee
                     ));
 
-                $bid->trigger(Bid::EVENT_BID_REJECT_EMPLOYEE);
+                $bid->trigger(Bid::EVENT_REJECT_BID_BY_EMPLOYEE);
             } else {
                 $bid->status = Bid::STATUS_CANCELED;
                 $bid->employee_id = null;
@@ -581,7 +694,7 @@ class BidService
                 $notification
             ));
 
-        $bid->trigger(Bid::EVENT_BID_DONE_EMPLOYEE);
+        $bid->trigger(Bid::EVENT_DONE_BID_BY_EMPLOYEE);
 
         $works = $this->workRepository->getWorksByBidId($bid->id);
 
@@ -645,7 +758,7 @@ class BidService
     /**
      * @param array $workIds
      * @param array $excludedEmployeeIds
-     * @return Employee|null
+     * @return Employee[]|null
      */
     public function getFirstAvailableEmployeeByWorks(array $workIds, array $excludedEmployeeIds = []): ?Employee
     {
@@ -653,7 +766,21 @@ class BidService
         $workQualificationIds = $this->workQualificationRepository->getQualificationIds($workId);
         $includedEmployeeIds = $this->employeeQualificationRepository->getEmployeeIdsByQualifications($workQualificationIds);
 
-        return $this->employeeRepository->getFirstAvailable($includedEmployeeIds, $excludedEmployeeIds);
+        return $this->employeeRepository->getAllAvailable($includedEmployeeIds, $excludedEmployeeIds);
+    }
+
+    /**
+     * @param array $workIds
+     * @param array $excludedEmployeeIds
+     * @return Employee[]|null
+     */
+    public function getAllAvailableEmployeeByWorks(array $workIds, array $excludedEmployeeIds = []): ?array
+    {
+        $workId = array_shift($workIds);
+        $workQualificationIds = $this->workQualificationRepository->getQualificationIds($workId);
+        $includedEmployeeIds = $this->employeeQualificationRepository->getEmployeeIdsByQualifications($workQualificationIds);
+
+        return $this->employeeRepository->getAllAvailable($includedEmployeeIds, $excludedEmployeeIds);
     }
 
     /**
@@ -741,9 +868,9 @@ class BidService
             (string)$model->object,
             $model->customer_comment,
             $model->employee_comment,
-            (int)$model->complete_at,
-            (int)$model->created_at,
-            (int)$model->updated_at,
+            $model->complete_at,
+            $model->created_at,
+            $model->updated_at,
             (array)$works,
             (array)$customerPhotos,
             (array)$files,

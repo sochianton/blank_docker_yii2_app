@@ -27,6 +27,9 @@ class SiteController extends Controller
      */
     public function actionIndex(): stdClass
     {
-        return new stdClass();
+        $std = new stdClass();
+        $std->test = 'sdf';
+
+        return $std;
     }
 }

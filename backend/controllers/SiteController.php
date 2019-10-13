@@ -11,12 +11,16 @@ use yii\base\Exception;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
+use yii\web\ErrorAction;
 
 /**
  * Site controller
  */
 class SiteController extends Controller
 {
+
+    public $layout = '@app/views/layoutsAuth/main';
+
     /**
      * @var AuthService
      */
@@ -63,22 +67,24 @@ class SiteController extends Controller
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
+
+
+
+
+
+
     public function actions()
     {
         return [
             'error' => [
-                'class' => 'yii\web\ErrorAction',
+                'class' => ErrorAction::class,
+                'layout' => '@app/views/layoutsError/main',
+                'view' => '@app/views/layoutsError/error',
+                'defaultMessage' => Yii::t('app', 'Page not found'),
             ],
         ];
     }
 
-    /**
-     * Displays homepage.
-     * @return string
-     */
     public function actionIndex()
     {
         if (Yii::$app->user->isGuest) {
@@ -93,6 +99,9 @@ class SiteController extends Controller
      */
     public function actionLogin()
     {
+
+        $this->view->title = Yii::t('app', 'Login');
+
         if (!Yii::$app->user->isGuest) {
             return $this->goHome();
         }
@@ -139,4 +148,27 @@ class SiteController extends Controller
             'model' => $model,
         ]);
     }
+
+
+
+    // =============================================
+
+    /**
+     * Стандартый конфиг для поля в форме авторизации
+     * @return array
+     */
+    static function getFormFieldConfig(){
+        return [
+            'template' => "{input}\n{hint}\n{error}",
+            'errorOptions' => [
+                'class' => 'help-block',
+                'style' => 'font-size:11px'
+            ],
+            'inputOptions' => [
+                'class' => 'form-control',
+                'placeholder' => 'form-control',
+            ]
+        ];
+    }
+
 }

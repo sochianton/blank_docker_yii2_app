@@ -85,6 +85,6 @@ class BidFindEmployeeJob extends BaseObject implements JobInterface
                 $notificationEmployee
             ));
 
-        $bid->trigger(Bid::EVENT_BID_CREATE_CUSTOMER);
+        $bid->trigger(Bid::EVENT_CREATE_BID_BY_CUSTOMER);
     }
 }

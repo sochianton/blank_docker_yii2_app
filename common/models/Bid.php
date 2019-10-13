@@ -5,6 +5,7 @@ namespace common\models;
 use Yii;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
+use yii\db\Expression;
 
 /**
  * This is the model class for table "{{%bid}}".
@@ -25,11 +26,13 @@ use yii\db\ActiveRecord;
  */
 class Bid extends ActiveRecord
 {
-    const EVENT_BID_CREATE_CUSTOMER = 'bid_create_customer';
-    const EVENT_BID_APPLY_EMPLOYEE = 'bid_apply_employee';
-    const EVENT_BID_REJECT_EMPLOYEE = 'bid_reject_employee';
-    const EVENT_BID_DONE_EMPLOYEE = 'bid_done_employee';
+    const EVENT_CREATE_BID_BY_CUSTOMER = 'bid_create_customer';
+    const EVENT_APPLY_BID_BY_EMPLOYEE = 'bid_apply_employee';
+    const EVENT_REJECT_BID_BY_EMPLOYEE = 'bid_reject_employee';
+    const EVENT_DONE_BID_BY_EMPLOYEE = 'bid_done_employee';
     const EVENT_BID_CANCELED = 'bid_canceled';
+
+
 
     const STATUS_NEW = 10;
     const STATUS_CANCELED = 20;
@@ -78,6 +81,7 @@ class Bid extends ActiveRecord
         return [
             [
                 'class' => TimestampBehavior::class,
+                'value' => new Expression('NOW()'),
             ]
         ];
     }
@@ -96,13 +100,11 @@ class Bid extends ActiveRecord
                     'employee_id',
                     'status',
                     'price',
-                    'complete_at',
-                    'created_at',
-                    'updated_at',
                     'deleted_at'
                 ],
                 'integer'
             ],
+            [['complete_at'], 'datetime', 'format' => 'php:Y-m-d H:i:s'],
             [['name', 'object'], 'string', 'max' => 255],
             [['price'], 'integer', 'min' => 1, 'max' => 2147483647],
             [['customer_comment', 'employee_comment'], 'string', 'max' => 500],
@@ -150,7 +152,7 @@ class Bid extends ActiveRecord
         ?int $employeeId,
         int $status,
         int $price,
-        int $completeAt,
+        $completeAt,
         string $object,
         ?string $customerComment,
         ?string $employeeComment

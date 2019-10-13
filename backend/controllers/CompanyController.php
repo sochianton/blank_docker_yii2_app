@@ -1,50 +1,24 @@
 <?php
 
+
 namespace backend\controllers;
 
-use backend\models\forms\CompanyForm;
-use backend\models\search\CompanySearch;
-use common\models\Company;
-use common\service\CompanyService;
+
+use common\ar\Company;
+use common\controllers\CRUDController;
 use Yii;
 use yii\db\StaleObjectException;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
-use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
-use yii\web\ServerErrorHttpException;
+use common\services\CompanyService;
 
-/**
- * CompanyController implements the CRUD actions for Company model.
- */
-class CompanyController extends Controller
+class CompanyController extends CRUDController
 {
-    /**
-     * @var CompanyService
-     */
-    private $companyService;
 
-    /**
-     * CompanyController constructor.
-     * @param $id
-     * @param $module
-     * @param CompanyService $companyService
-     * @param array $config
-     */
-    public function __construct(
-        $id,
-        $module,
-        CompanyService $companyService,
-        array $config = []
-    ) {
-        parent::__construct($id, $module, $config);
-        $this->companyService = $companyService;
-    }
+    public $model = Company::class;
 
-    /**
-     * {@inheritdoc}
-     */
     public function behaviors()
     {
         return [
@@ -54,9 +28,9 @@ class CompanyController extends Controller
                     [
                         'actions' => [
                             'index',
-                            'view',
-                            'create',
                             'update',
+                            'create',
+                            'delete',
                             'block',
                             'restore',
                         ],
@@ -68,91 +42,18 @@ class CompanyController extends Controller
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
+                    'block' => ['POST'],
                     'delete' => ['POST'],
                 ],
             ],
         ];
     }
 
-    /**
-     * Lists all Company models.
-     * @return mixed
-     * @throws \Exception
-     */
-    public function actionIndex()
+    public function init()
     {
-        $searchModel = new CompanySearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $this->indexTitle = Yii::t('app', 'Companies');
 
-        return $this->render('index', [
-            'dataProvider' => $dataProvider,
-            'searchModel' => $searchModel,
-        ]);
-    }
-
-    /**
-     * Displays a single Company model.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionView(int $id)
-    {
-        $company = $this->companyService->get($id);
-
-        return $this->render('view', [
-            'model' => $company,
-        ]);
-    }
-
-    /**
-     * Creates a new Company model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return mixed
-     * @throws \Throwable
-     * @throws ServerErrorHttpException
-     */
-    public function actionCreate()
-    {
-        /** @var CompanyForm $request */
-        $request = new CompanyForm();
-
-        if ($request->load(Yii::$app->request->bodyParams) && $request->validate()) {
-            /** @var Company $company */
-            $company = $this->companyService->create($request->getDto());
-            return $this->redirect(['view', 'id' => $company->id]);
-        }
-
-        return $this->render('create', [
-            'model' => $request,
-        ]);
-    }
-
-    /**
-     * @param int $id
-     * @return string|Response
-     * @throws NotFoundHttpException
-     * @throws ServerErrorHttpException
-     * @throws StaleObjectException
-     * @throws \Throwable
-     */
-    public function actionUpdate(int $id)
-    {
-        $request = new CompanyForm();
-
-        if ($request->load(Yii::$app->request->bodyParams)) {
-            if ($request->validate()) {
-                $this->companyService->update($id, $request->getDto());
-                return $this->redirect(['view', 'id' => $id]);
-            }
-        } else {
-            $company = $this->companyService->get($id);
-            $request->fillFromModel($company);
-        }
-
-        return $this->render('update', [
-            'model' => $request,
-        ]);
+        parent::init();
     }
 
     /**
@@ -164,11 +65,14 @@ class CompanyController extends Controller
      */
     public function actionBlock($id)
     {
-        if ($this->companyService->block($id)) {
+        if(CompanyService::block($id)){
             Yii::$app->session->setFlash('success', Yii::t('app', 'Company is blocked.'));
         }
+        else{
+            Yii::$app->session->setFlash('error', Yii::t('app', 'Can\'t perform operation'));
+        }
 
-        return $this->redirect('/company/index');
+        return $this->redirect(['index']);
     }
 
     /**
@@ -180,10 +84,14 @@ class CompanyController extends Controller
      */
     public function actionRestore($id)
     {
-        if ($this->companyService->restore($id)) {
+        if(CompanyService::restore($id)){
             Yii::$app->session->setFlash('success', Yii::t('app', 'Company is restored.'));
         }
+        else{
+            Yii::$app->session->setFlash('error', Yii::t('app', 'Can\'t perform operation'));
+        }
 
-        return $this->redirect('/company/index');
+        return $this->redirect(['index']);
     }
+
 }
