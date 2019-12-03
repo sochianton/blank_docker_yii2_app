@@ -7,7 +7,7 @@
 .idea
 
 #docker config
-/docker/project-config.yml
+
 # composer cache
 /docker/run/cache
 # ssl
