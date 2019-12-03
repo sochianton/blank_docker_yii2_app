@@ -13,7 +13,7 @@ class m190820_091719_add_price_in_work_table extends Migration
     public function safeUp()
     {
 
-        $this->alterColumn('{{%work}}', 'price', $this->money(2)->null());
+        $this->alterColumn('{{%work}}', 'price', $this->money()->null());
 
     }
 

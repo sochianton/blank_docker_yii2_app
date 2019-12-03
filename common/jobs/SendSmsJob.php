@@ -3,7 +3,7 @@
 namespace common\jobs;
 
 use common\components\TwilioSMSNotifier;
-use common\models\User;
+use common\ar\User;
 use scl\tools\rest\exceptions\SafeException;
 use Yii;
 use yii\base\BaseObject;

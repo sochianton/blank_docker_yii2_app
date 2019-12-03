@@ -6,9 +6,9 @@ namespace common\repositories;
 
 use common\ar\EmployeeQualification;
 use common\ar\User;
+use common\ar\UserWork;
 use common\interfaces\BaseRepositoryInterface;
 use common\models\Customer;
-use common\models\Employee;
 use common\traits\RepositoryTrait;
 use yii\db\Expression;
 
@@ -27,9 +27,6 @@ class UserRep implements BaseRepositoryInterface
             'type' => User::TYPE_CUSTOMER,
             'status' => User::STATUS_ACTIVE
         ]);
-
-        return Customer::find()
-            ->all();
     }
 
     /**
@@ -40,8 +37,6 @@ class UserRep implements BaseRepositoryInterface
             'type' => User::TYPE_EMPLOYEE,
             'status' => User::STATUS_ACTIVE
         ]);
-        return Employee::find()
-            ->all();
     }
 
     /**
@@ -91,11 +86,47 @@ class UserRep implements BaseRepositoryInterface
     }
 
     /**
+     * @param int $userId
+     * @param array $workIds
+     * @throws \Exception
+     */
+    static function insertWorkArray(int $userId, array $workIds): void
+    {
+        $model = new UserWork();
+        try {
+
+            $userWorks = [];
+            foreach ($workIds as $workId) {
+                $userWorks[] = [
+                    'work_id' => $workId,
+                    'user_id' => $userId,
+                ];
+            }
+
+            \Yii::$app->db->createCommand()->batchInsert(
+                UserWork::tableName(),
+                $model->attributes(),
+                $userWorks
+            )->execute();
+        } catch (\Exception $exception) {
+            throw new \Exception(\Yii::t('errors', 'Can\'t create user work'));
+        }
+    }
+
+    /**
      * @param array $userId
      */
     static function deleteQualificationArray(array $userIds): void
     {
         EmployeeQualification::deleteAll(['employee_id' => $userIds]);
+    }
+
+    /**
+     * @param array $userId
+     */
+    static function deleteWorkArray(array $userIds): void
+    {
+        UserWork::deleteAll(['user_id' => $userIds]);
     }
 
     /**
@@ -107,6 +138,19 @@ class UserRep implements BaseRepositoryInterface
         return \common\models\EmployeeQualification::find()
             ->where(['employee_id' => $userId])
             ->select('qualification_id')
+            ->column();
+
+    }
+
+    /**
+     * @param $userId
+     * @return array
+     */
+    static function getWorksIds($userId){
+
+        return UserWork::find()
+            ->where(['user_id' => $userId])
+            ->select('work_id')
             ->column();
 
     }
@@ -170,6 +214,26 @@ class UserRep implements BaseRepositoryInterface
             ->where(['id' => $includedEmployeeIds])
             ->andFilterWhere(['NOT IN', 'id', $excludedEmployeeIds])
             ->andWhere(['!=', 'status', User::STATUS_DELETED])
+            ->orderBy(new Expression('random()'))
+            ->all();
+    }
+
+    /**
+     * @param array $workIds
+     * @param array $excludedUserIds
+     * @param int|null $type
+     * @return array|null
+     */
+    static function getAllByWork(array $workIds, array $excludedUserIds, int $type=null): ?array
+    {
+
+        return User::find()
+            ->alias('u')
+            ->leftJoin(['uw' => UserWork::tableName()], "uw.user_id=u.id")
+            ->andFilterWhere(['NOT IN', 'u.id', $excludedUserIds])
+            ->andFilterWhere(['=', 'u.type', $type])
+            ->andWhere(['!=', 'u.status', User::STATUS_DELETED])
+            ->andWhere(['IN', 'uw.work_id', $workIds])
             ->orderBy(new Expression('random()'))
             ->all();
     }

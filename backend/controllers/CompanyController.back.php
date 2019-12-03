@@ -16,9 +16,10 @@ use yii\web\Response;
 use yii\web\ServerErrorHttpException;
 
 /**
+ * @deprecated
  * CompanyController implements the CRUD actions for Company model.
  */
-class back extends Controller
+class __CompanyController extends Controller
 {
     /**
      * @var CompanyService

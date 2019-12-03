@@ -47,6 +47,10 @@ return [
 
             ],
         ],
+        'authManager' => [
+            'class' => \yii\rbac\DbManager::class,
+            'defaultRoles' => ['user'],
+        ],
         'queue' => [
             'class' => yii\queue\amqp_interop\Queue::class,
             'host' => $_ENV['RABBITMQ_HOST'],

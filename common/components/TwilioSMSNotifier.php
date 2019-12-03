@@ -2,7 +2,7 @@
 
 namespace common\components;
 
-use common\models\User;
+use common\ar\User;
 use filipajdacic\yiitwilio\YiiTwilio;
 use scl\tools\rest\exceptions\SafeException;
 use Twilio\Exceptions\RestException;

@@ -6,8 +6,14 @@ namespace backend\controllers;
 use backend\models\forms\LoginForm;
 use backend\models\forms\PasswordResetRequestForm;
 use backend\services\AuthService;
+use common\ar\Push;
+use common\ar\User;
+use paragraph1\phpFCM\Notification;
 use Yii;
+use yii\base\ErrorException;
 use yii\base\Exception;
+use yii\base\InvalidConfigException;
+use yii\di\NotInstantiableException;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
@@ -47,6 +53,9 @@ class SiteController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::class,
+                'except' => [
+                    'test',
+                ],
                 'rules' => [
                     [
                         'actions' => ['login', 'error', 'request-password-reset', 'reset-password'],
@@ -66,9 +75,6 @@ class SiteController extends Controller
             ],
         ];
     }
-
-
-
 
 
 
@@ -147,6 +153,37 @@ class SiteController extends Controller
         return $this->render('requestPasswordResetToken', [
             'model' => $model,
         ]);
+    }
+
+    /**
+     * @return string
+     * @throws ErrorException
+     */
+    public function actionTest(){
+
+
+        $container = Yii::$container;
+
+        /** @var \scl\yii\push\Push $pushService */
+        try {
+            $pushService = $container->get(\scl\yii\push\Push::class);
+        } catch (NotInstantiableException | InvalidConfigException $e) {
+            Yii::error('Invalid service configuration: ' . $e->getMessage());
+            throw new ErrorException($e->getMessage());
+        }
+
+
+        $allUsers = User::find()->where([
+            'status' => User::STATUS_ACTIVE
+        ])->column();
+
+        $pushService->sendToUsers($allUsers, Push::TYPE_CUSTOMER, new Notification(
+            'TEST',
+            'TEST'
+        ), ['link'=>'12']);
+
+        return $this->renderContent('TEST');
+
     }
 
 

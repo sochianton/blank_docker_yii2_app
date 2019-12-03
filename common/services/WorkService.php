@@ -4,7 +4,6 @@
 namespace common\services;
 
 
-use common\dto\WorkDto;
 use common\interfaces\BaseServiceInterface;
 use \common\ar\Work;
 use common\repositories\QualificationRep;
@@ -44,11 +43,53 @@ class WorkService implements BaseServiceInterface
     }
 
     /**
+     * @param int $id
+     * @return Work[]
+     */
+    static function getByCategoryIds(int $id): ?array
+    {
+        return (self::$repository)::getWorksByCategoryId($id);
+    }
+
+    /**
      * @return array
      */
     static function getList(): array
     {
         return ArrayHelper::map((self::$repository)::getAll(), 'id', 'name');
+    }
+
+    /**
+     * @return array
+     */
+    static function getIds(): array
+    {
+        return ArrayHelper::getColumn((self::$repository)::getAll(), 'id');
+    }
+
+    /**
+     * @param array $names
+     * @return array
+     */
+    static function getIdsByName(array $names): array
+    {
+        return ArrayHelper::getColumn((self::$repository)::getWorksByNames($names) , 'id');
+    }
+
+    /**
+     * @return array
+     */
+    static function getNames(): array
+    {
+        return ArrayHelper::getColumn((self::$repository)::getAll(), 'name');
+    }
+
+    /**
+     * @return array
+     */
+    static function getListCategoried(): array
+    {
+        return ArrayHelper::map((self::$repository)::getAllWithCats(), 'id', 'name', 'c_name');
     }
 
     /**
@@ -136,6 +177,7 @@ class WorkService implements BaseServiceInterface
     static function searchFromApi($params){
 
         $work = new Work();
+
         $provider = $work->search($params);
 
         return array_map(function (Work $model){
@@ -155,8 +197,6 @@ class WorkService implements BaseServiceInterface
             $workIds = QualificationRep::getWorkIdsByQualifications([(int)$category]);
         }
 
-        //$works = WorkRep::getAll($workIds ?? []);
-
         $work = new Work();
 
         $params=[];
@@ -165,6 +205,8 @@ class WorkService implements BaseServiceInterface
                 'id' => $workIds,
             ];
         }
+
+
 
 
         return self::searchFromApi($params);

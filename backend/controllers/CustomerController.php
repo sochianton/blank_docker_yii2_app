@@ -18,9 +18,10 @@ use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 /**
+ * @deprecated
  * CustomerController implements the CRUD actions for Customer model.
  */
-class CustomerController extends Controller
+class __CustomerController extends Controller
 {
     /**
      * @var CustomerService

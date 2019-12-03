@@ -2,6 +2,10 @@
 
 namespace common\widgets;
 
+use common\ar\AuthItems;
+use kartik\grid\ActionColumn;
+use yii\base\Model;
+use yii\grid\Column;
 use yii\web\View;
 
 class AppGridView extends \kartik\grid\GridView
@@ -67,6 +71,62 @@ js
                 'widget' => $this,
             ]);
         }
+    }
+
+
+    /**
+     * Генерируем Json данные для вставки в тблицу для Дерева
+     * @param $nodeColumnIdx
+     * @param bool $forChildren
+     * @return array
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function generateJsonCols($nodeColumnIdx, $forChildren=false){
+
+        $res = [];
+
+        /** @var AuthItems[] $models */
+        $models = array_values($this->dataProvider->getModels());
+
+        $provider = $this->dataProvider;
+        $keys = $provider->getKeys();
+
+        foreach ($models as $index => $model) {
+
+            $key = $keys[$index];
+            /* @var $column Column */
+            $tmp = [];
+            foreach ($this->columns as $idx => $column) {
+
+
+
+                if($idx == $nodeColumnIdx){
+                    $tmp['key'] = $key;
+                    $tmp['title'] = $column->renderDataCell($model, $key, $index);
+
+                    $tmp['folder'] = ($model->type == 1);
+                    $tmp['lazy'] = true;
+
+                    $tmp['children'] = !$model->children;
+
+                }
+                else{
+                    if($forChildren AND $column instanceof ActionColumn){
+                        $tmp['cols'][$idx] = '';
+                    }
+                    else{
+                        $tmp['cols'][$idx] = $column->renderDataCell($model, $key, $index);
+                    }
+
+                }
+            }
+
+            $res[] = $tmp;
+        }
+
+        return $res;
+
+
     }
 
 }

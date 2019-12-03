@@ -2,12 +2,14 @@
 
 namespace common\jobs;
 
-use common\models\Bid;
+use common\ar\Bid;
 use common\models\EmployeeRejectedBid;
-use common\models\Push;
+use common\ar\Push;
+use common\repositories\BidRep;
 use common\repository\BidRepository;
 use common\repository\EmployeeRejectedBidRepository;
 use common\service\BidService;
+use common\services\UserService;
 use paragraph1\phpFCM\Notification;
 use scl\yii\push\job\PushUserJob;
 use Throwable;
@@ -22,9 +24,22 @@ use yii\queue\Queue;
 /**
  * Class BidFindEmployeeJob
  * @package common\jobs
+ *
+ * @deprecated
  */
 class BidFindEmployeeJob extends BaseObject implements JobInterface
 {
+
+    /**
+     *
+     *
+     *
+     * НЕ ИСПОЛЬЗУЕТСЯЯ
+     *
+     *
+     */
+
+
     /** @var integer $bidId */
     public $bidId;
 

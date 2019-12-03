@@ -2,10 +2,9 @@
 
 namespace common\jobs;
 
-use common\models\Bid;
-use common\repository\BidRepository;
+use common\ar\Bid;
+use common\repositories\BidRep;
 use Throwable;
-use Yii;
 use yii\base\BaseObject;
 use yii\base\InvalidConfigException;
 use yii\di\NotInstantiableException;
@@ -29,12 +28,17 @@ class BidDoneNotApprovedJob extends BaseObject implements JobInterface
      */
     public function execute($queue)
     {
-        /** @var BidRepository $bidRepository */
-        $bidRepository = Yii::$container->get(BidRepository::class);
+//        /** @var BidRepository $bidRepository */
+//        $bidRepository = Yii::$container->get(BidRepository::class);
+//        $bid = $bidRepository->get($this->bidId);
 
-        $bid = $bidRepository->get($this->bidId);
+
+
+
+        /** @var Bid $bid */
+        $bid = BidRep::get($this->bidId);
         if ($bid && $bid->status === Bid::STATUS_CONFIRMATION) {
-            $bidRepository->setStatus($bid, Bid::STATUS_COMPLETE);
+            BidRep::setStatus($bid, Bid::STATUS_COMPLETE);
         }
     }
 }

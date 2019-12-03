@@ -20,7 +20,7 @@ use yii\web\View;
 
 $customers=\common\services\UserService::getCustomerList();
 $employees=\common\services\UserService::getEmployeeList();
-$works=\common\services\WorkService::getList();
+$works=\common\services\WorkService::getListCategoried();
 
 $customerPhotos=$model->customerPhotosArr;
 $employeePhotos=$model->employeePhotosArr;

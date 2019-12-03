@@ -57,6 +57,15 @@ class ProfileResponse extends Model
     public $fcmTokens;
 
     /**
+     * @var array
+     * @OA\Property(
+     *     type="array",
+     *     @OA\Items(type="array")
+     * )
+     */
+    public $qualificationsAndWorks;
+
+    /**
      * ProfileResponse constructor.
      * @param array $profile
      */

@@ -5,6 +5,7 @@ namespace common\ar;
 
 
 use common\interfaces\CRUDControllerModelInterface;
+use common\interfaces\ImportRecordInterface;
 use common\services\BidService;
 use common\services\WorkService;
 use common\widgets\AppForm;
@@ -14,6 +15,7 @@ use kartik\grid\ActionColumn;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
+use yii\db\Exception;
 use yii\helpers\ArrayHelper;
 use yii\web\UploadedFile;
 
@@ -29,8 +31,10 @@ use yii\web\UploadedFile;
  * @property string $complete_at
  * @property string $customer_comment
  * @property string $employee_comment
+ *
+ * @property User $customer_rl
  */
-class Bid extends AppActiveRecord implements CRUDControllerModelInterface
+class Bid extends AppActiveRecord implements CRUDControllerModelInterface, ImportRecordInterface
 {
 
     /** @var array */
@@ -49,6 +53,8 @@ class Bid extends AppActiveRecord implements CRUDControllerModelInterface
     const EVENT_REJECT_BID_BY_EMPLOYEE = 'bid_reject_employee';
     const EVENT_DONE_BID_BY_EMPLOYEE = 'bid_done_employee';
     const EVENT_BID_CANCELED = 'bid_canceled';
+
+    const EVENT_CREATE_UPDATE_BID = 'bid_create_update';
 
 
 
@@ -286,6 +292,16 @@ class Bid extends AppActiveRecord implements CRUDControllerModelInterface
         return $this->hasMany(BidAttachment::class, ['bid_id' => 'id'])->andWhere(['type' => BidAttachment::TYPE_PHOTO_EMPLOYEE]);
     }
 
+    /**
+     * @return \yii\db\ActiveQuery
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function getCustomer_rl()
+    {
+
+        return $this->hasOne(User::class, ['id' => 'customer_id'])->andWhere(['type' => User::TYPE_CUSTOMER]);
+    }
+
     // ======================================================
 
     /**
@@ -328,9 +344,9 @@ class Bid extends AppActiveRecord implements CRUDControllerModelInterface
         $this->load($params);
 
         if (!$this->validate()) {
-            //die(print_r($this->errors, true));
             $query->andWhere('1=0');
-            return $dataProvider;
+            throw new Exception('Errors in search params', $this->getErrors());
+            //return $dataProvider;
         }
 
 //        die(print_r($this->attributes, true));
@@ -338,10 +354,10 @@ class Bid extends AppActiveRecord implements CRUDControllerModelInterface
         if (!empty($this->created_at) && strpos($this->created_at, ' - ') !== false) {
             [$createdAtStart, $createdAtEnd] = explode(' - ', $this->created_at);
 
-            $startDate = (new \DateTime($createdAtStart))->getTimestamp();
+            $startDate = (new \DateTime($createdAtStart))->format(DATE_ATOM);
             $endDate = $createdAtStart === $createdAtEnd
-                ? (new \DateTime($createdAtEnd))->modify('+ 1 day last second')->getTimestamp() // add 1 day
-                : (new \DateTime($createdAtEnd))->getTimestamp();
+                ? (new \DateTime($createdAtEnd))->modify('+ 1 day last second')->format(DATE_ATOM) // add 1 day
+                : (new \DateTime($createdAtEnd))->format(DATE_ATOM);
 
             $query->andFilterWhere([
                 'between',
@@ -354,10 +370,10 @@ class Bid extends AppActiveRecord implements CRUDControllerModelInterface
         if (!empty($this->complete_at) && strpos($this->complete_at, ' - ') !== false) {
             [$completeAtStart, $completeAtEnd] = explode(' - ', $this->complete_at);
 
-            $startDate = (new \DateTime($completeAtStart))->getTimestamp();
+            $startDate = (new \DateTime($completeAtStart))->format(DATE_ATOM);
             $endDate = $completeAtStart === $completeAtEnd
-                ? (new \DateTime($completeAtEnd))->modify('+ 1 day last second')->getTimestamp() // add 1 day
-                : (new \DateTime($completeAtEnd))->getTimestamp();
+                ? (new \DateTime($completeAtEnd))->modify('+ 1 day last second')->format(DATE_ATOM) // add 1 day
+                : (new \DateTime($completeAtEnd))->format(DATE_ATOM);
 
             $query->andFilterWhere([
                 'between',
@@ -499,7 +515,7 @@ class Bid extends AppActiveRecord implements CRUDControllerModelInterface
                         return false;//!(bool)$model->deleted_at;
                     },
                     'update' => function ($model) {
-                        return !(bool)$model->deleted_at;
+                        return !(bool)$model->deleted_at AND Yii::$app->user->ch('/bid/update');
                     },
                 ]
             ],
@@ -530,6 +546,12 @@ class Bid extends AppActiveRecord implements CRUDControllerModelInterface
                     [
                         'label' => '<i class="fa fa-plus"></i> '.Yii::t('app', 'Add'),
                         'url' => ['create'],
+                        'visible' => Yii::$app->user->ch('/bid/create')
+                    ],
+                    [
+                        'label' => '<i class="glyphicon glyphicon-cloud-upload"></i> '.Yii::t('app', 'Upload'),
+                        'url' => ['upload'],
+                        'visible' => Yii::$app->user->ch('/bid/upload')
                     ],
                     [
                         'label' => '{export}'
@@ -582,4 +604,95 @@ class Bid extends AppActiveRecord implements CRUDControllerModelInterface
 
     }
 
+    // ===========Import==========================
+
+    /**
+     * @return array|null
+     */
+    static function importHeader(){
+
+        return array (
+            'name',
+            'customer_id',
+            'employee_id',
+            'status',
+            'price',
+            'object',
+            'works',
+            'customer_comment',
+            'employee_comment',
+            'complete_at',
+        );
+
+    }
+
+
+    /**
+     * @return array
+     */
+    static function importHeaderDescription(){
+
+        return array (
+            'complete_at' => 'Формат даты: 2019-10-25 18:00:00',
+
+            'status' => implode(",\n", array_map(function ($el) {
+                return Yii::t('app', $el);
+            }, Bid::STATUSES)),
+
+            'works' => implode(",\n", WorkService::getNames()),
+
+        );
+
+    }
+
+
+    /**
+     * @return array
+     */
+    static function importAttributeRules(){
+
+        return array (
+
+            'status' => function($val){
+
+
+
+                $src = array_map(function ($el) {
+                    return Yii::t('app', $el);
+                }, Bid::STATUSES);
+
+                $src = array_flip($src);
+
+                //die('<pre>'.print_r($src, true).'</pre>');
+
+                if(isset($src[$val])) return (int)$src[$val];
+                else return $val;
+            },
+            'works' => function($val){
+
+
+
+                $vals = explode(',', $val);
+
+
+
+                $vals = array_map(function ($el) {
+                    return trim($el);
+                }, $vals);
+
+//                die('<pre>'.print_r(WorkService::getIdsByName($vals), true).'</pre>');
+
+                return WorkService::getIdsByName($vals);
+
+            }
+
+        );
+
+    }
+
 }
+
+
+
+
+

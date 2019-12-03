@@ -5,7 +5,6 @@ namespace common\ar;
 
 
 use common\interfaces\CRUDControllerModelInterface;
-use common\repositories\WorkRep;
 use common\services\QualificationService;
 use common\services\WorkService;
 use common\widgets\AppForm;
@@ -16,6 +15,7 @@ use kartik\widgets\Select2;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
+use yii\db\Exception;
 use yii\helpers\ArrayHelper;
 
 
@@ -102,10 +102,9 @@ class Work extends AppActiveRecord implements CRUDControllerModelInterface
     }
 
     /**
-     * Поиск по таблице
      * @param $params
      * @return ActiveDataProvider
-     * @throws \Exception
+     * @throws Exception
      */
     public function search($params){
 
@@ -128,16 +127,17 @@ class Work extends AppActiveRecord implements CRUDControllerModelInterface
         $this->load($params);
 
         if (!$this->validate()) {
-            return $dataProvider;
+            throw new Exception('Errors in search params', $this->getErrors());
+            //return $dataProvider;
         }
 
-        if (!empty($this->createdAt) && strpos($this->createdAt, ' - ') !== false) {
-            [$createdAtStart, $createdAtEnd] = explode(' - ', $this->createdAt);
+        if (!empty($this->created_at) && strpos($this->created_at, ' - ') !== false) {
+            [$createdAtStart, $createdAtEnd] = explode(' - ', $this->created_at);
 
-            $startDate = (new \DateTime($createdAtStart))->getTimestamp();
+            $startDate = (new \DateTime($createdAtStart))->format(DATE_ATOM);
             $endDate = $createdAtStart === $createdAtEnd
-                ? (new \DateTime($createdAtEnd))->modify('+ 1 day last second')->getTimestamp() // add 1 day
-                : (new \DateTime($createdAtEnd))->getTimestamp();
+                ? (new \DateTime($createdAtEnd))->modify('+ 1 day last second')->format(DATE_ATOM) // add 1 day
+                : (new \DateTime($createdAtEnd))->format(DATE_ATOM);
 
             $query->andFilterWhere([
                 'between',
@@ -251,10 +251,10 @@ class Work extends AppActiveRecord implements CRUDControllerModelInterface
                 ],
                 'visibleButtons' => [
                     'delete' => function ($model) {
-                        return !(bool)$model->deleted_at;
+                        return !(bool)$model->deleted_at AND Yii::$app->user->ch('/work/delete');
                     },
                     'update' => function ($model) {
-                        return !(bool)$model->deleted_at;
+                        return !(bool)$model->deleted_at AND Yii::$app->user->ch('/work/update');
                     },
                 ]
             ],
@@ -285,6 +285,7 @@ class Work extends AppActiveRecord implements CRUDControllerModelInterface
                     [
                         'label' => '<i class="fa fa-plus"></i> '.Yii::t('app', 'Add'),
                         'url' => ['create'],
+                        'visible' => Yii::$app->user->ch('/work/create')
                     ],
                     [
                         'label' => '{export}'

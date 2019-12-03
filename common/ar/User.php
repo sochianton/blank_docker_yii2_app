@@ -3,14 +3,11 @@
 
 namespace common\ar;
 
-use common\helpers\UploadFileHelper;
 use common\interfaces\CRUDControllerModelInterface;
-use common\ar\AuthToken;
 use common\models\BidAttachment;
 use common\repositories\AuthTokenRep;
 use common\repositories\UserRep;
-use common\repository\CustomerRepository;
-use common\repository\EmployeeRepository;
+use common\services\TransactionService;
 use common\services\UserService;
 use common\widgets\AppForm;
 use common\widgets\AppGridView;
@@ -41,6 +38,8 @@ use yii\web\UploadedFile;
  * @property string $auth_key
  * @property string $phone
  * @property string $photo
+ *
+ * @property AuthItems[] $roles_rl
  */
 class User extends AppActiveRecord implements IdentityInterface, CRUDControllerModelInterface
 {
@@ -67,9 +66,15 @@ class User extends AppActiveRecord implements IdentityInterface, CRUDControllerM
 
     public $password;
     public $passwordRepeat;
-    public $qualifications=[];
+    public $qualifications=[]; // устаревший параметр (потому что используются только работы) он раньше был в форме. сейчас в форме нет
+    public $works=[]; // массив с ID работ - нужен для формы
+    //public $qualificationsAndWorks = []; // Для DTO работы с категориями
     /** @var UploadedFile */
     public $formPhoto;
+    public $formRoles;
+
+    public $balance; // Для отображения баланса пользователя при поиске
+    public $searchTerm; // Строка для поиска
 
     public static function tableName(): string
     {
@@ -78,7 +83,7 @@ class User extends AppActiveRecord implements IdentityInterface, CRUDControllerM
 
     public function rules(): array
     {
-        $res = [
+        return ArrayHelper::merge(parent::rules(), [
             ['password_hash', 'filter', 'filter' => function ($val) {
                 if ($this->password AND trim($this->password) !=='') {
                     return Yii::$app->security->generatePasswordHash($this->password);
@@ -108,9 +113,26 @@ class User extends AppActiveRecord implements IdentityInterface, CRUDControllerM
                     'targetAttribute' => 'id'
                 ]
             ],
+            [
+                'works',
+                'each',
+                'rule' => [
+                    'exist',
+                    'targetClass' => Work::class,
+                    'targetAttribute' => 'id'
+                ]
+            ],
 
-            [['balance'], 'integer', 'min' => 0],
-            [['balance', 'type'], 'default', 'value' => 0, 'except' => [
+            ['formRoles', 'default', 'value' => []],
+            ['formRoles', 'each', 'rule' => [
+                'exist',
+                'targetAttribute' => 'name',
+                'targetClass' => AuthItems::class,
+            ]],
+
+
+            [['balance', 'searchTerm'], 'filter', 'filter' => function($val){ return trim($val);}],
+            [['balance', 'searchTerm'], 'string', 'on' => [
                 self::SCENARIO_SEARCH
             ]],
 
@@ -160,9 +182,7 @@ class User extends AppActiveRecord implements IdentityInterface, CRUDControllerM
                 'message' => Yii::t('app', 'Passwords don\'t match')
             ],
 
-        ];
-
-        return ArrayHelper::merge(parent::rules(), $res);
+        ]);
     }
 
     public function attributeLabels(): array
@@ -185,6 +205,8 @@ class User extends AppActiveRecord implements IdentityInterface, CRUDControllerM
             'photo' => Yii::t('app', 'Photo'),
             'formPhoto' => Yii::t('app', 'Photo'),
             'balance' => Yii::t('app', 'Balance'),
+            'works' => Yii::t('app', 'Works'),
+            'formRoles' => Yii::t('app', 'Roles and permissions'),
         ]);
     }
 
@@ -195,15 +217,28 @@ class User extends AppActiveRecord implements IdentityInterface, CRUDControllerM
      */
     public function load($data, $formName = null): bool
     {
+
+
+
         $load = parent::load($data, $formName);
+        $this->works = array_filter($this->works);
         $this->formPhoto = UploadedFile::getInstance($this, 'formPhoto');
+
+
+
         return $load;
     }
 
     public function afterFind()
     {
 
-        $this->qualifications = UserService::getQualificationIds($this->id);
+        //$this->qualifications = UserService::getQualificationIds($this->id);
+        $this->works = UserService::getWorksIds($this->id);
+        $this->formRoles = ArrayHelper::getColumn($this->roles_rl, 'name');
+
+        if($this->scenario != self::SCENARIO_SEARCH){
+            $this->balance = TransactionService::getBalanceByUserId($this->id);
+        }
 
         parent::afterFind();
 
@@ -222,7 +257,13 @@ class User extends AppActiveRecord implements IdentityInterface, CRUDControllerM
             },
             'fcmTokens' => function(){
                 return (self::getService())::getFcmTokens($this->id);
-            }
+            },
+            'qualificationsAndWorks' => function(){
+                return (self::getService())::getCategoriedWorks($this->id);
+            },
+            'balance' => function(){
+                return TransactionService::getBalanceByUserId($this->id);
+            },
         ]);
     }
 
@@ -263,6 +304,8 @@ class User extends AppActiveRecord implements IdentityInterface, CRUDControllerM
         $expire = Yii::$app->params['user.passwordResetTokenExpire'];
         return $timestamp + $expire >= time();
     }
+
+
 
     public function getFullName()
     {
@@ -352,6 +395,16 @@ class User extends AppActiveRecord implements IdentityInterface, CRUDControllerM
 //        return $this;
     }
 
+    //=============== RELATIONS ============================================================
+
+    /**
+     * @return \yii\db\ActiveQuery
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function getRoles_rl()
+    {
+        return $this->hasMany(AuthItems::class, ['name' => 'item_name'])->viaTable(AuthAssignment::tableName(), ['user_id' => 'id']);
+    }
 
     // ===== IdentityInterface ========================================
 
@@ -444,6 +497,9 @@ class User extends AppActiveRecord implements IdentityInterface, CRUDControllerM
         $this->setScenario(self::SCENARIO_SEARCH);
 
         $query = self::find();
+        $query->select('*');
+        //var_dump($query);die();
+
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -451,7 +507,7 @@ class User extends AppActiveRecord implements IdentityInterface, CRUDControllerM
                 'defaultOrder' => [
                     'id' => SORT_ASC
                 ]
-            ]
+            ],
         ]);
 
         $createdAtStart = null;
@@ -479,6 +535,42 @@ class User extends AppActiveRecord implements IdentityInterface, CRUDControllerM
             ]);
         }
 
+        // Баланс
+        if(1){
+            TransactionService::setBalanceQueryToUser($query);
+
+            $balanceVal=null;
+            $operator = '=';
+            if($this->balance){
+
+                if(stristr($this->balance, ' ')){
+                    $parts = explode(' ', $this->balance);
+                    if(isset($parts[0])) $operator = $parts[0];
+                    if(isset($parts[1])) $balanceVal = (float)$parts[1];
+                    if(!in_array($operator, [
+                        '=',
+                        '>',
+                        '<',
+                        '=<',
+                        '=>',
+                        '<=',
+                        '>=',
+                        '<>',
+                    ])){
+                        $operator = '=';
+                    }
+                }
+                else{
+                    $balanceVal = (float)$this->balance;
+                }
+
+            }
+
+
+            $query
+                ->filterWhere([$operator, '(COALESCE(plus.plus,0) - COALESCE(minus.minus,0))', $balanceVal]);
+        }
+
         $query
             ->andFilterWhere(['like', 'email', $this->email])
             ->andFilterWhere(['like', 'phone', $this->phone])
@@ -488,6 +580,11 @@ class User extends AppActiveRecord implements IdentityInterface, CRUDControllerM
             ->andFilterWhere(['=', 'status', $this->status])
             ->andFilterWhere(['=', 'type', $this->type])
             ->andFilterWhere(['=', 'id', $this->id])
+            ->andFilterWhere(['or',
+                ['ilike', 'first_name', $this->searchTerm],
+                ['ilike', 'second_name', $this->searchTerm],
+                ['ilike', 'last_name', $this->searchTerm],
+            ])
         ;
 
         return $dataProvider;
@@ -552,6 +649,7 @@ class User extends AppActiveRecord implements IdentityInterface, CRUDControllerM
                     return Yii::t('app', self::STATUSES[$model->status] ?? null);
                 }
             ],
+            'balance:currency',
             [
                 'attribute' => 'created_at',
                 'label' => Yii::t('app', 'Creation date'),
@@ -594,10 +692,10 @@ class User extends AppActiveRecord implements IdentityInterface, CRUDControllerM
                 ],
                 'visibleButtons' => [
                     'delete' => function ($model) {
-                        return !(bool)$model->deleted_at;
+                        return !(bool)$model->deleted_at AND Yii::$app->user->ch('/user/delete');
                     },
                     'update' => function ($model) {
-                        return !(bool)$model->deleted_at;
+                        return !(bool)$model->deleted_at AND Yii::$app->user->ch('/user/update');
                     },
                 ]
             ],
@@ -628,6 +726,7 @@ class User extends AppActiveRecord implements IdentityInterface, CRUDControllerM
                     [
                         'label' => '<i class="fa fa-plus"></i> '.Yii::t('app', 'Add'),
                         'url' => ['create'],
+                        'visible' => Yii::$app->user->ch('/user/create'),
                     ],
                     [
                         'label' => '{export}'

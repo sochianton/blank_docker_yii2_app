@@ -22,6 +22,7 @@ return [
             'csrfParam' => '_csrf-backend',
         ],
         'user' => [
+            'class' => \common\components\WebUser::class,
             'identityClass' => \common\ar\User::class,
             'enableAutoLogin' => true,
             'identityCookie' => [

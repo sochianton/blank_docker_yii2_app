@@ -9,6 +9,7 @@
 namespace scl\yii\push;
 
 
+use common\repositories\PushRep;
 use GuzzleHttp\Exception\RequestException;
 use paragraph1\phpFCM\Client;
 use paragraph1\phpFCM\Message;
@@ -27,6 +28,7 @@ final class Push
     /** @var int $pushLimit */
     private $pushLimit;
     /** @var PushRepoInterface $pushRepo */
+    /** @var PushRep $pushRepo */
     private $pushRepo;
 
     const dataDefault = [
@@ -138,6 +140,8 @@ final class Push
     {
         $currentPage = 0;
         while (true) {
+
+
             $currentRecipients = array_slice($recipients, $this->pushLimit * $currentPage, $this->pushLimit);
             if (count($currentRecipients) == 0) {
                 break;
@@ -154,11 +158,12 @@ final class Push
 
             /* for custom push with sounds */
             $jsonData = $note->jsonSerialize();
-            $message->setData([
-                'title' => $jsonData['title'],
-                'body' => $jsonData['body']
-            ]);
-            /*    */
+
+
+            $message->setData(array_merge($jsonData, $data));
+//            $message->setData($data);
+
+
 
             try {
                 $response = $client->send($message);
@@ -166,6 +171,7 @@ final class Push
                 if (ArrayHelper::getValue($responseBody, 'failure', 0) > 0) {
                     $this->handleFailureResult($responseBody, $currentRecipients);
                 }
+
             } catch (RequestException $e) {
                 $response = $e->getResponse();
                 Yii::error(
@@ -186,6 +192,7 @@ final class Push
      */
     protected function handleFailureResult($responseBody, array $recipients): void
     {
+
         $deletePushTokens = [];
         foreach (ArrayHelper::getValue($responseBody, 'results', []) as $i => $status) {
             if ($responseBody->failure <= count($deletePushTokens)) {

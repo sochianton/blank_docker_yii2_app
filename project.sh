@@ -3,7 +3,10 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/root
 PATH=$PATH:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
-ROOT=$(pwd)
+
+
+#ROOT=$(pwd)
+ROOT=`dirname $0`
 CONF_DIR=$ROOT/docker
 RUN=$CONF_DIR/run
 
@@ -58,6 +61,16 @@ function ComposeCommandExec {
     ComposeCommand exec ${USE_TTY} --user $(stat -c '%u' ./):$(stat -c '%g' ./) $@
 }
 
+function ComposeCommandNoUser {
+    source $ROOT/.env
+    if [ -t 0 ];
+    then USE_TTY="";
+    else USE_TTY="-T";
+    fi
+
+    ComposeCommand exec ${USE_TTY} $@
+}
+
 function DiffCodeAnalyze {
     STAGED_FILES=`git diff --name-only --diff-filter=ACMR HEAD | grep \\.php`
     docker run -i --user $(id -u):$(id -g) --env FILES="$STAGED_FILES" --rm  -v=$(pwd)/:/app \
@@ -74,6 +87,36 @@ function PhpStanAnalyze {
 function PhpMdAnalyze {
     docker run -i --user $(id -u):$(id -g) --rm  -v=$(pwd)/:/app \
     gitlab.icerockdev.com:4567/scl/docker-image/code-analyzer:latest php /scripts/phpmd.phar $@ text /config/phpmd.xml
+}
+
+function Backup {
+
+    echo ""
+    echo ""
+    echo ""
+    source $ROOT/.env
+
+    PREFIX=`date +%F` #Префикс по дате для создания резервной копий
+    POSTFIX=`date +%d-%m-%Y"_"%H-%M-%S`
+    FILE=${BACKUP_DIR}/${PREFIX}/backup-${POSTFIX}.sql.gz
+
+
+    echo "[--------------------------------[${PREFIX}]--------------------------------]"
+    #echo ${DB_USER}
+    #echo ${DB_NAME}
+    echo "[`date +%F_%H-%M-%S`] Run the backup script..."
+    mkdir -p ${BACKUP_DIR}/${PREFIX} #2> /dev/null.
+    echo "[`date +%F_%H-%M-%S`] Generate a database backup..."
+
+    PGPASSWORD=${POSTGRES_PASSWORD}
+    export PGPASSWORD
+    pg_dump -h localhost -p 5432 -U ${DB_USER} -w --create --inserts ${DB_NAME} | gzip > ${FILE}
+    unset PGPASSWORD
+
+    #ComposeCommand exec -T -u ${DB_USER}:${DB_USER} postgres sh -c ${SQL} | gzip > ${FILE}
+    echo "[`date +%F_%H-%M-%S`] Generate a database backup done"
+
+    exit 0
 }
 
 function run() {
@@ -99,6 +142,10 @@ function run() {
             shift
             ComposeCommandExec $@
         ;;
+        execnouser)
+            shift
+            ComposeCommandNoUser $@
+        ;;
         swagger)
             ComposeCommandExec web php yii swagger
         ;;
@@ -114,8 +161,8 @@ function run() {
             shift
             PhpMdAnalyze $@
         ;;
-        help)
-            ShowHelp
+        backup)
+            Backup
         ;;
     esac
 }

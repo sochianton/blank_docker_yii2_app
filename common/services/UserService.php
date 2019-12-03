@@ -4,7 +4,7 @@
 namespace common\services;
 
 
-use api\modules\employee\v1\dto\ProfileDto;
+use common\ar\AuthAssignment;
 use common\ar\Push;
 use common\ar\User;
 use common\ar\Work;
@@ -12,6 +12,7 @@ use common\helpers\UploadFileHelper;
 use common\interfaces\BaseServiceInterface;
 use common\repositories\PushRep;
 use common\repositories\UserRep;
+use common\repositories\WorkRep;
 use common\traits\ServiceTrait;
 use Yii;
 use yii\helpers\ArrayHelper;
@@ -47,20 +48,27 @@ class UserService implements BaseServiceInterface
 
             (self::$repository)::insert($model);
 
-            $qualifications=$model->qualifications;
-            if($qualifications AND !is_array($qualifications)){
-                $qualifications = array($model->qualifications);
+            self::deleteRolesAssignment([$model->id]);
+            self::insertAssignmentRolesArray($model->id, $model->formRoles);
+
+            (self::$repository)::deleteWorkArray([$model->id]);
+            if (!empty($model->works)) {
+                (self::$repository)::insertWorkArray($model->id, $model->works);
             }
 
-            if (is_array($qualifications) AND !empty($qualifications)) {
-
-                (self::$repository)::insertQualificationArray($model->id, $qualifications);
-            }
+//            $qualifications=$model->qualifications;
+//            if($qualifications AND !is_array($qualifications)){
+//                $qualifications = array($model->qualifications);
+//            }
+//
+//            if (is_array($qualifications) AND !empty($qualifications)) {
+//
+//                (self::$repository)::insertQualificationArray($model->id, $qualifications);
+//            }
 
             $transaction->commit();
         } catch (\Exception $e) {
             $transaction->rollBack();
-//            var_dump($qualifications);
             throw new \Exception($e->getMessage());
         }
 
@@ -81,23 +89,23 @@ class UserService implements BaseServiceInterface
      */
     static function update($model, bool $runValidation = true, $attributeNames = null): User
     {
+
         if($model->isNewRecord){
             throw new NotFoundHttpException(Yii::t('app', 'Model need to be not new'));
         }
 
+        (self::$repository)::update($model);
+
         $transaction = Yii::$app->db->beginTransaction();
         try {
             (self::$repository)::update($model);
-            (self::$repository)::deleteQualificationArray([$model->id]);
 
-            $qualifications=$model->qualifications;
-            if($qualifications AND !is_array($qualifications)){
-                $qualifications = array($model->qualifications);
-            }
+            self::deleteRolesAssignment([$model->id]);
+            self::insertAssignmentRolesArray($model->id, $model->formRoles);
 
-            if (!empty($qualifications)) {
-
-                (self::$repository)::insertQualificationArray($model->id, $qualifications);
+            (self::$repository)::deleteWorkArray([$model->id]);
+            if (!empty($model->works)) {
+                (self::$repository)::insertWorkArray($model->id, $model->works);
             }
 
             $transaction->commit();
@@ -117,13 +125,14 @@ class UserService implements BaseServiceInterface
         return $user->toArray([
            'email',
            'phone',
-           'balance',
         ], [
+            'balance',
             'name',
             'secondName',
             'lastName',
             'photo',
             'fcmTokens',
+            'qualificationsAndWorks',
         ]);
     }
 
@@ -209,10 +218,22 @@ class UserService implements BaseServiceInterface
                     <span>'.Yii::t('app', 'Users').'</span>',
                 'url' => Url::toRoute(['/user']),
                 'active' => function ($item, $hasActiveChild, $isItemActive, $widget){
-                    if(Yii::$app->controller->id == 'user')
+                    if(Yii::$app->controller->id == 'user' AND Yii::$app->controller->action->id != 'roles')
                         return true;
                     return false;
                 },
+                'visible' => Yii::$app->user->ch('/user/index')
+            ],
+            [
+                'label' => '<i class="glyphicon glyphicon-equalizer"></i>
+                    <span>'.Yii::t('app', 'Roles and permissions').'</span>',
+                'url' => Url::toRoute(['/user/roles']),
+                'active' => function ($item, $hasActiveChild, $isItemActive, $widget){
+                    if(Yii::$app->controller->id == 'user' AND Yii::$app->controller->action->id == 'roles')
+                        return true;
+                    return false;
+                },
+                'visible' => Yii::$app->user->ch('/user/roles')
             ],
             [
                 'label' => '<i class="fa fa-industry"></i>
@@ -223,6 +244,7 @@ class UserService implements BaseServiceInterface
                         return true;
                     return false;
                 },
+                'visible' => Yii::$app->user->ch('/company/index')
             ],
 //            [
 //                'label' => '<i class="fa fa-diamond"></i>
@@ -253,6 +275,7 @@ class UserService implements BaseServiceInterface
                         return true;
                     return false;
                 },
+                'visible' => Yii::$app->user->ch('/qualification/index')
             ],
             [
                 'label' => '<i class="fa fa-gavel"></i>
@@ -263,6 +286,7 @@ class UserService implements BaseServiceInterface
                         return true;
                     return false;
                 },
+                'visible' => Yii::$app->user->ch('/work/index')
             ],
             [
                 'label' => '<i class="fa fa-ticket"></i>
@@ -273,6 +297,7 @@ class UserService implements BaseServiceInterface
                         return true;
                     return false;
                 },
+                'visible' => Yii::$app->user->ch('/bid/index')
             ],
             [
                 'label' => '<i class="fa fa-exchange"></i>
@@ -283,6 +308,7 @@ class UserService implements BaseServiceInterface
                         return true;
                     return false;
                 },
+                'visible' => Yii::$app->user->ch('/transaction/index')
             ],
         ];
     }
@@ -299,6 +325,22 @@ class UserService implements BaseServiceInterface
 
     static function getQualificationIds(int $id) : array{
         return (self::$repository)::getQualificationIds($id);
+    }
+
+    /**
+     * @param int $id user Id
+     * @return array
+     */
+    static function getWorksIds(int $id) : array{
+        return (self::$repository)::getWorksIds($id);
+    }
+
+    /**
+     * @param int $id user Id
+     * @return array
+     */
+    static function getCategoriedWorks(int $id) : array{
+        return ArrayHelper::map(WorkRep::getAllWithCatsByIserId($id), 'id', 'name', 'c_name');
     }
 
     /**
@@ -436,6 +478,51 @@ class UserService implements BaseServiceInterface
         $employee->updateAttributes(['balance' => $balance]);
 
         return $employee;
+    }
+
+    /**
+     * @param int $user_id
+     * @param array $roles
+     * @throws \Exception
+     */
+    static function insertAssignmentRolesArray(int $user_id, array $roles): void
+    {
+
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+
+            $query = [];
+            foreach ($roles as $role) {
+                $query[] = [
+                    'item_name' => $role,
+                    'user_id' => $user_id,
+                    'created_at' => time()
+                ];
+            }
+
+            Yii::$app->db->createCommand()->batchInsert(
+                AuthAssignment::tableName(),
+                ['item_name', 'user_id', 'created_at'],
+                $query
+            )->execute();
+
+            $transaction->commit();
+
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            throw new \Exception($e->getMessage());
+        }
+
+    }
+
+    /**
+     * @param array $userIds
+     * @return int
+     */
+    static function deleteRolesAssignment(array $userIds){
+
+        return AuthAssignment::deleteAll(['user_id' => $userIds]);
+
     }
 
 

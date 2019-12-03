@@ -7,7 +7,6 @@ use scl\yii\push\Push;
 use Yii;
 use yii\base\ErrorException;
 use yii\base\InvalidConfigException;
-use yii\db\Exception;
 use yii\di\NotInstantiableException;
 use yii\queue\JobInterface;
 use yii\queue\Queue;

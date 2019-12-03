@@ -2,6 +2,7 @@
 namespace common\ar;
 
 use Yii;
+use yii\behaviors\BlameableBehavior;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\db\Expression;
@@ -14,6 +15,10 @@ use yii\db\Expression;
  * @property string $created_at
  * @property string $updated_at
  * @property string $deleted_at
+ *
+ * @property integer $created_by
+ * @property integer $updated_by
+ * @property integer $deleted_by
  *
  */
 abstract class AppActiveRecord extends ActiveRecord
@@ -34,6 +39,9 @@ abstract class AppActiveRecord extends ActiveRecord
             [
                 'class' => TimestampBehavior::class,
                 'value' => new Expression('NOW()'),
+            ],
+            [
+                'class' => BlameableBehavior::class
             ]
         ];
     }
@@ -44,7 +52,17 @@ abstract class AppActiveRecord extends ActiveRecord
     public function rules()
     {
         return [
-            [['id', 'created_at', 'updated_at', 'deleted_at'], 'safe', 'on' => [self::SCENARIO_SEARCH], 'except' => [
+//            [['id'], 'integer'],
+            [[
+                'id',
+                'created_at',
+                'updated_at',
+                'deleted_at',
+                'created_by',
+                'updated_by',
+                'deleted_by',
+
+            ], 'safe', 'on' => [self::SCENARIO_SEARCH], 'except' => [
                 self::SCENARIO_UPDATE,
                 self::SCENARIO_CREATE,
             ]],
@@ -59,6 +77,9 @@ abstract class AppActiveRecord extends ActiveRecord
             'deleted_at' => Yii::t('app', 'Deleted At'),
             'created_at' => Yii::t('app', 'Created At'),
             'updated_at' => Yii::t('app', 'Updated At'),
+            'deleted_by' => Yii::t('app', 'Deleted By'),
+            'created_by' => Yii::t('app', 'Created By'),
+            'updated_by' => Yii::t('app', 'Updated By'),
         ];
     }
 

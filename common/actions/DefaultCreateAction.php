@@ -24,6 +24,7 @@ class DefaultCreateAction extends BaseAppAction
 
     public $title = '';
     public $breadcrumbs = [];
+    public $redirect = 'index';
 
     /**
      * @return bool
@@ -55,7 +56,7 @@ class DefaultCreateAction extends BaseAppAction
 
             if($service::insert($this->model)){
                 Yii::$app->session->setFlash('success', Yii::t('errors', 'Operation successfully done'));
-                return $this->controller->redirect(['update', 'id' => $this->model->id]);
+                return $this->controller->redirect([$this->redirect, 'id' => $this->model->id]);
             }
 
         }

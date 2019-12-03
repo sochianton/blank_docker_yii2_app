@@ -19,9 +19,10 @@ use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 /**
+ * @deprecated
  * EmployeeController implements the CRUD actions for Employee model.
  */
-class EmployeeController extends Controller
+class __EmployeeController extends Controller
 {
     /**
      * @var EmployeeService

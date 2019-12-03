@@ -14,6 +14,8 @@ use common\service\AdmUserService;
 use \yii\helpers\Html;
 use yii\helpers\Url;
 
+/** @var \common\ar\User $user */
+$user = Yii::$app->user->getModel();
 ?>
 <!-- Logo -->
 <a href="<?=Yii::$app->user->returnUrl?>" class="logo">
@@ -42,6 +44,15 @@ use yii\helpers\Url;
             'encodeLabels' => false,
 
             'items' => [
+                [
+                    'label' => '<img src="'.$user->getPhotoUrl().'" class="user-image" alt="User Image"><span class="hidden-xs">'.$user->getFullName().'</span>',
+                    'url' => '#',
+                    'template' => "<a href='{url}' class='dropdown-toggle' aria-expanded='false'>{label}</a>",
+                    'options' => [
+                        'class' => 'user user-menu'
+                    ],
+                    'visible' => !Yii::$app->user->isGuest
+                ],
                 [
                     'label' => '<i class="fa fa-sign-out"></i>
                         <span>'.Yii::t('app', 'Exit').'</span>',

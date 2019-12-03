@@ -17,7 +17,12 @@ use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
-class WorkController extends Controller
+/**
+ * @deprecated
+ * Class __WorkController
+ * @package backend\controllers
+ */
+class __WorkController extends Controller
 {
     /** @var QualificationService $qualificationService */
     protected $qualificationService;

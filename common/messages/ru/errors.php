@@ -18,4 +18,5 @@ return [
     'Operation successfully done' => 'Операция успешно выполнена',
     'Can\'t perform operation' => 'Не удается выполнить операцию',
     'Can\'t delete record from db' => 'Не удается удалить запись',
+    'Can\'t save records' => 'Не удается сохранить записи',
 ];

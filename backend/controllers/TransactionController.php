@@ -2,74 +2,39 @@
 
 namespace backend\controllers;
 
-use backend\models\search\TransactionSearch;
-use common\service\TransactionService;
+use common\ar\Transactions;
+use common\controllers\CRUDController;
 use Yii;
-use yii\filters\AccessControl;
-use yii\web\Controller;
+use yii\filters\VerbFilter;
+use yii\helpers\ArrayHelper;
 
 /**
  * Class TransactionController
  * @package backend\controllers
  */
-class TransactionController extends Controller
+class TransactionController extends CRUDController
 {
-    /**
-     * @var TransactionService
-     */
-    private $transactionService;
+    public $model = Transactions::class;
 
-    /**
-     * BidController constructor.
-     * @param $id
-     * @param $module
-     * @param TransactionService $transactionService
-     * @param array $config
-     */
-    public function __construct(
-        $id,
-        $module,
-        TransactionService $transactionService,
-        $config = []
-    ) {
-        parent::__construct($id, $module, $config);
-        $this->transactionService = $transactionService;
-    }
 
-    /**
-     * {@inheritdoc}
-     */
     public function behaviors()
     {
-        return [
-            'access' => [
-                'class' => AccessControl::class,
-                'rules' => [
-                    [
-                        'actions' => [
-                            'index',
-                        ],
-                        'allow' => true,
-                        'roles' => ['@']
-                    ],
+        return ArrayHelper::merge(parent::behaviors(), [
+            'verbs' => [
+                'class' => VerbFilter::class,
+                'actions' => [
+                    'delete' => ['POST'],
                 ],
             ],
-        ];
-    }
-
-    /**
-     * Lists all Bid models.
-     * @return mixed
-     * @throws \Exception
-     */
-    public function actionIndex()
-    {
-        $searchModel = new TransactionSearch();
-        $request = Yii::$app->request;
-
-        return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $searchModel->search($request->queryParams, $request->isPost),
         ]);
     }
+
+    public function init()
+    {
+        $this->indexTitle = Yii::t('app', 'Transactions');
+        $this->createTitle = Yii::t('app', 'Add manual transaction');
+
+        parent::init();
+    }
+
 }

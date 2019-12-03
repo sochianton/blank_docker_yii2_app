@@ -7,6 +7,7 @@ use common\controllers\CRUDController;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
+use yii\helpers\ArrayHelper;
 
 /**
  * Class QualificationController
@@ -20,29 +21,29 @@ class QualificationController extends CRUDController
 
     public function behaviors()
     {
-        return [
-            'access' => [
-                'class' => AccessControl::class,
-                'rules' => [
-                    [
-                        'actions' => [
-                            'index',
-                            'update',
-                            'create',
-                            'delete',
-                        ],
-                        'allow' => true,
-                        'roles' => ['@']
-                    ],
-                ],
-            ],
+        return ArrayHelper::merge(parent::behaviors(), [
+//            'access' => [
+//                'class' => AccessControl::class,
+//                'rules' => [
+//                    [
+//                        'actions' => [
+//                            'index',
+//                            'update',
+//                            'create',
+//                            'delete',
+//                        ],
+//                        'allow' => true,
+//                        'roles' => ['@']
+//                    ],
+//                ],
+//            ],
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['POST'],
                 ],
             ],
-        ];
+        ]);
     }
 
     public function init()

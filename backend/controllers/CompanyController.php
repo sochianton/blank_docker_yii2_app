@@ -5,11 +5,12 @@ namespace backend\controllers;
 
 
 use common\ar\Company;
+use common\components\CURL;
 use common\controllers\CRUDController;
 use Yii;
 use yii\db\StaleObjectException;
-use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
+use yii\helpers\ArrayHelper;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 use common\services\CompanyService;
@@ -21,24 +22,26 @@ class CompanyController extends CRUDController
 
     public function behaviors()
     {
-        return [
-            'access' => [
-                'class' => AccessControl::class,
-                'rules' => [
-                    [
-                        'actions' => [
-                            'index',
-                            'update',
-                            'create',
-                            'delete',
-                            'block',
-                            'restore',
-                        ],
-                        'allow' => true,
-                        'roles' => ['@']
-                    ],
-                ],
-            ],
+        return ArrayHelper::merge(parent::behaviors(), [
+//            'access' => [
+//                'class' => AccessControl::class,
+//                'rules' => [
+//                    [
+//                        'actions' => [
+//                            'index',
+//                            'update',
+//                            'create',
+//                            'delete',
+//                            'block',
+//                            'restore',
+//
+//                            'test',
+//                        ],
+//                        'allow' => true,
+//                        'roles' => ['@']
+//                    ],
+//                ],
+//            ],
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
@@ -46,7 +49,7 @@ class CompanyController extends CRUDController
                     'delete' => ['POST'],
                 ],
             ],
-        ];
+        ]);
     }
 
     public function init()
@@ -94,4 +97,49 @@ class CompanyController extends CRUDController
         return $this->redirect(['index']);
     }
 
+
+    public function actionTest()
+    {
+
+        $res = CURL::authPost('https://sd.e-servis.ru/api/requests/', \yii\helpers\Json::encode([
+            'service_id' => '75',
+            'CUsers_id' => 'ias_api_user',
+
+            'City' => 'Москва',
+            'Name' => 'TESST',
+            'phone' => '11111111111',
+            'Content' => 'TESST',
+            'Address' => 'TESST',
+
+            //'StartTime' => '11.09.2019 08:00',
+            //'EndTime' => $endDate->format('d.m.Y H:i'),
+
+            'fields' => [
+                'Стоимость' => '32123',
+                'Комментарий НСК' => 'Комментарий НСК',
+            ]
+        ]), 'ias_api_user', 'ias_test');
+
+        //\yii\helpers\Json::decode($res);
+
+//        die('<pre>'.print_r(\yii\helpers\Json::decode($res), true).'</pre>');
+
+        return $this->renderContent($res);
+    }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

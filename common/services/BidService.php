@@ -9,9 +9,8 @@ use common\ar\User;
 use common\helpers\UploadFileHelper;
 use common\interfaces\BaseServiceInterface;
 use common\ar\BidAttachment;
-use common\models\Push;
+use common\ar\Push;
 use common\repositories\BidRep;
-use common\repositories\QualificationRep;
 use common\repositories\UserRep;
 use common\repositories\WorkRep;
 use common\traits\ServiceTrait;
@@ -19,7 +18,6 @@ use paragraph1\phpFCM\Notification;
 use scl\tools\rest\exceptions\SafeException;
 use scl\yii\push\job\PushUserJob;
 use Yii;
-use yii\db\Exception;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
 use yii\web\BadRequestHttpException;
@@ -211,7 +209,8 @@ class BidService implements BaseServiceInterface
                     [$bid->customer_id],
                     Push::TYPE_CUSTOMER,
                     $notification
-                ));
+                )
+            );
 
             throw new BadRequestHttpException(Yii::t('app', 'No matching employee found for your bid.'));
         }
@@ -247,11 +246,13 @@ class BidService implements BaseServiceInterface
 
         $bid->trigger(Bid::EVENT_CREATE_BID_BY_CUSTOMER);
 
+
         if(is_array($bid->customerPhotos)) self::uploadFiles($bid, BidAttachment::TYPE_PHOTO_CUSTOMER, $bid->customerPhotos);
         if(is_array($bid->files))  self::uploadFiles($bid, BidAttachment::TYPE_FILE, $bid->files);
         if(is_array($bid->employeePhotos))  self::uploadFiles($bid, BidAttachment::TYPE_PHOTO_EMPLOYEE, $bid->employeePhotos);
 
 
+        $bid->trigger(Bid::EVENT_CREATE_UPDATE_BID);
         return (self::$repository)::get($bid->id);
 
 //        $this->uploadFiles($bid, BidAttachment::TYPE_FILE, $bidDto->getFiles());
@@ -304,6 +305,7 @@ class BidService implements BaseServiceInterface
             WorkRep::insertAllByBid($bid->id, $bid->works);
         }
 
+        $bid->trigger(Bid::EVENT_CREATE_UPDATE_BID);
         return (self::$repository)::get($bid->id);
     }
 
@@ -570,11 +572,12 @@ class BidService implements BaseServiceInterface
      */
     static function getAllAvailableEmployeeByWorks(array $workIds, array $excludedEmployeeIds = []): ?array
     {
-        $workId = array_shift($workIds);
-        $workQualificationIds = QualificationRep::getQualificationIdsByWork($workId);
-        $includedEmployeeIds = UserRep::getEmployeeIdsByQualifications($workQualificationIds);
 
-        return UserRep::getAllAvailable($includedEmployeeIds, $excludedEmployeeIds);
+//        $workId = array_shift($workIds);
+//        $workQualificationIds = QualificationRep::getQualificationIdsByWork($workId);
+//        $includedEmployeeIds = UserRep::getEmployeeIdsByQualifications($workQualificationIds);
+
+        return UserRep::getAllByWork($workIds, $excludedEmployeeIds, User::TYPE_EMPLOYEE);
     }
 
 }

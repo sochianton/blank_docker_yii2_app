@@ -58,10 +58,11 @@ class Company extends AppActiveRecord implements CRUDControllerModelInterface
                 self::SCENARIO_SEARCH
             ]],
             [['type', 'status'], 'default', 'value' => null],
-            [['type', 'status', 'number_of_contract'], 'integer'],
+            [['type', 'status'], 'integer'],
             ['status', 'in', 'range' => array_keys(self::STATUSES)],
             ['type', 'in', 'range' => array_keys(self::TYPES)],
             [['name', 'address'], 'string', 'max' => 100],
+            [['number_of_contract'], 'string', 'max' => 255],
         ]);
     }
 
@@ -251,16 +252,16 @@ class Company extends AppActiveRecord implements CRUDControllerModelInterface
                 ],
                 'visibleButtons' => [
                     'block' => function ($model) {
-                        return ($model->deleted_at == null AND $model->status === Company::STATUS_ACTIVE);
+                        return ($model->deleted_at == null AND $model->status === Company::STATUS_ACTIVE) AND Yii::$app->user->ch('/company/block');
                     },
                     'restore' => function ($model) {
-                        return ($model->deleted_at == null AND $model->status === Company::STATUS_BLOCKED);
+                        return ($model->deleted_at == null AND $model->status === Company::STATUS_BLOCKED) AND Yii::$app->user->ch('/company/restore');
                     },
                     'delete' => function ($model) {
-                        return $model->deleted_at == null;
+                        return $model->deleted_at == null AND Yii::$app->user->ch('/company/delete');
                     },
                     'update' => function ( $model) {
-                        return $model->deleted_at == null;
+                        return $model->deleted_at == null AND Yii::$app->user->ch('/company/update');
                     },
                 ]
             ],
@@ -294,6 +295,7 @@ class Company extends AppActiveRecord implements CRUDControllerModelInterface
                     [
                         'label' => '<i class="fa fa-plus"></i> '.Yii::t('app', 'Add'),
                         'url' => ['create'],
+                        'visible' => Yii::$app->user->ch('/company/create')
                     ],
                     [
                         'label' => '{export}'

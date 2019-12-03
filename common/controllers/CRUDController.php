@@ -9,6 +9,7 @@ use common\actions\DefaultDeleteCRUDAction;
 use common\actions\DefaultIndexCRUDAction;
 use common\actions\DefaultLightDeleteCRUDAction;
 use common\actions\DefaultUpdateAction;
+use common\actions\DefaultUploadAction;
 use common\ar\Company;
 use common\interfaces\CRUDControllerModelInterface;
 use Yii;
@@ -23,10 +24,12 @@ class CRUDController extends AppController
     public $indexTitle;
     public $createTitle;
     public $updateTitle;
+    public $uploadTitle;
 
     public $indexBreadcrumbs;
     public $createBreadcrumbs;
     public $updateBreadcrumbs;
+    public $uploadBreadcrumbs;
 
     public function init()
     {
@@ -34,6 +37,7 @@ class CRUDController extends AppController
 
         if(!$this->createTitle) $this->createTitle = Yii::t('app', 'Create new record');
         if(!$this->updateTitle) $this->updateTitle = Yii::t('app', 'Update record');
+        if(!$this->uploadTitle) $this->uploadTitle = Yii::t('app', 'Upload records');
 
     }
 
@@ -84,6 +88,12 @@ class CRUDController extends AppController
                 'title' => $this->_getTitle('update'),
                 'breadcrumbs' => $this->_getBreadcrumbs('update'),
             ],
+            'upload' => [
+                'class' => DefaultUploadAction::class,
+                'model' => $this->_getModel(),
+                'title' => $this->_getTitle('upload'),
+                'breadcrumbs' => $this->_getBreadcrumbs('upload'),
+            ],
             'delete' => [
                 'class' => DefaultLightDeleteCRUDAction::class,
                 'model' => $this->_getModel(),
@@ -124,6 +134,9 @@ class CRUDController extends AppController
             case 'update' :
                 return $this->updateTitle ?: $this->_getModel()->formName();
                 break;
+            case 'upload' :
+                return $this->uploadTitle ?: $this->_getModel()->formName();
+                break;
             default :
                 return $this->_getModel()->formName();
                 break;
@@ -161,6 +174,15 @@ class CRUDController extends AppController
                     return [
                         ['label' => $this->_getTitle('index'), 'url' => ['index']],
                         $this->_getTitle('update'),
+                    ];
+                }
+                break;
+            case 'upload' :
+                if($this->uploadBreadcrumbs) return $this->uploadBreadcrumbs;
+                else{
+                    return [
+                        ['label' => $this->_getTitle('index'), 'url' => ['index']],
+                        $this->_getTitle('upload'),
                     ];
                 }
                 break;

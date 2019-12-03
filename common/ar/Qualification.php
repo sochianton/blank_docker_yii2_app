@@ -13,6 +13,7 @@ use kartik\grid\ActionColumn;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
+use yii\db\Exception;
 use yii\helpers\ArrayHelper;
 
 
@@ -74,6 +75,7 @@ class Qualification extends AppActiveRecord implements CRUDControllerModelInterf
         $this->load($params);
 
         if (!$this->validate()) {
+            throw new Exception('Errors in search params', $this->getErrors());
             return $dataProvider;
         }
 
@@ -95,7 +97,7 @@ class Qualification extends AppActiveRecord implements CRUDControllerModelInterf
 
         $query
             ->andFilterWhere(['ilike', 'name', $this->name])
-            ->andFilterWhere(['=', 'id', $this->id])
+            ->andFilterWhere(['id' => $this->id])
         ;
 
         return $dataProvider;
@@ -162,10 +164,10 @@ class Qualification extends AppActiveRecord implements CRUDControllerModelInterf
                 'template' => '{update} {delete}',
                 'visibleButtons' => [
                     'delete' => function (self $model) {
-                        return $model->deleted_at == null;
+                        return $model->deleted_at == null AND Yii::$app->user->ch('/qualification/delete');
                     },
                     'update' => function (self $model) {
-                        return $model->deleted_at == null;
+                        return $model->deleted_at == null AND Yii::$app->user->ch('/qualification/update');
                     },
                 ]
             ],
@@ -196,6 +198,7 @@ class Qualification extends AppActiveRecord implements CRUDControllerModelInterf
                     [
                         'label' => '<i class="fa fa-plus"></i> '.Yii::t('app', 'Add'),
                         'url' => ['create'],
+                        'visible' => Yii::$app->user->ch('/qualification/create')
                     ],
                     [
                         'label' => '{export}'

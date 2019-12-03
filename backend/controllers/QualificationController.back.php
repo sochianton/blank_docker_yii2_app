@@ -16,10 +16,11 @@ use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 /**
+ * @deprecated
  * Class QualificationController
  * @package backend\controllers
  */
-class QualificationController extends Controller
+class __QualificationController extends Controller
 {
     /** @var QualificationService $qualificationService */
     protected $qualificationService;

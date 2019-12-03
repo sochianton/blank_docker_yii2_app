@@ -5,11 +5,16 @@ namespace common\repositories;
 
 
 use common\ar\BidWork;
+use common\ar\Qualification;
+use common\ar\User;
+use common\ar\UserWork;
 use common\ar\Work;
 use common\ar\WorkQualification;
 use common\interfaces\BaseRepositoryInterface;
 use common\traits\RepositoryTrait;
 use Yii;
+use yii\db\ActiveQuery;
+use yii\db\Query;
 
 class WorkRep implements BaseRepositoryInterface
 {
@@ -83,6 +88,40 @@ class WorkRep implements BaseRepositoryInterface
     }
 
     /**
+     * @return ActiveQuery
+     */
+    static function getAllWithCatsQuery() : Query{
+        return (new Query())
+            ->from(['w' => Work::tableName()])
+            ->leftJoin(['cw' => WorkQualification::tableName()], 'cw.work_id = w.id')
+            ->leftJoin(['c' => Qualification::tableName()], 'cw.qualification_id = c.id')
+            ;
+    }
+
+    /**
+     * @return array
+     */
+    static function getAllWithCats() : array{
+        return self::getAllWithCatsQuery()
+            ->select('w.*, c.name c_name')
+            ->all()
+            ;
+    }
+
+    /**
+     * @param $userId
+     * @return array
+     */
+    static function getAllWithCatsByIserId($userId) : array{
+        return self::getAllWithCatsQuery()
+            ->leftJoin(['uw' => UserWork::tableName()], 'uw.work_id = w.id')
+            ->where(['uw.user_id' => $userId])
+            ->select('w.*, c.name c_name')
+            ->all()
+            ;
+    }
+
+    /**
      * @param int $bidId
      * @return Work[]
      */
@@ -95,6 +134,35 @@ class WorkRep implements BaseRepositoryInterface
             ->where(['bw.bid_id' => $bidId])
             ->all();
     }
+
+    /**
+     * @param int $catId
+     * @return Work[]
+     */
+    static function getWorksByCategoryId(int $catId): array
+    {
+        return Work::find()
+            ->from(['w' => Work::tableName()])
+            ->select(['w.*'])
+            ->innerJoin(['cw' => WorkQualification::tableName()], 'cw.work_id = w.id')
+            ->where(['cw.qualification_id' => $catId])
+            ->all();
+    }
+
+    /**
+     * @param array $names
+     * @return Work[]
+     */
+    static function getWorksByNames(array $names): array
+    {
+        $query = Work::find();
+
+        $query->where(['name' => $names]);
+
+        return $query->all();
+    }
+
+
 
     /**
      * @param int $bidId
